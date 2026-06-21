@@ -110,7 +110,7 @@ def p_vazio(pid=None):
       <w:r><w:rPr><w:rtl w:val="0"/></w:rPr></w:r>
     </w:p>'''
 
-def p_misto(partes, alinhamento='both', pid=None):
+def p_misto(partes, alinhamento='both', sz=24, pid=None):
     """Parágrafo com runs de negrito/normal misturados."""
     pid_attr = f'w14:paraId="{pid}"' if pid else ''
     runs = ''
@@ -121,7 +121,7 @@ def p_misto(partes, alinhamento='both', pid=None):
         <w:rPr>
           <w:rFonts w:ascii="Roboto" w:cs="Roboto" w:hAnsi="Roboto"/>
           {b}<w:color w:val="2E3C4F"/>
-          <w:sz w:val="24"/><w:szCs w:val="24"/>
+          <w:sz w:val="{sz}"/><w:szCs w:val="{sz}"/>
           <w:rtl w:val="0"/>
         </w:rPr>
         <w:t xml:space="preserve">{esc(texto)}</w:t>
@@ -134,7 +134,7 @@ def p_misto(partes, alinhamento='both', pid=None):
         <w:rPr>
           <w:rFonts w:ascii="Roboto" w:cs="Roboto" w:hAnsi="Roboto"/>
           <w:color w:val="2E3C4F"/>
-          <w:sz w:val="24"/><w:szCs w:val="24"/>
+          <w:sz w:val="{sz}"/><w:szCs w:val="{sz}"/>
         </w:rPr>
       </w:pPr>
       {runs}
@@ -181,9 +181,15 @@ def classificar_linha(linha):
     return 'corpo', False
 
 def texto_para_xml(texto):
+    # Remove separadores --- que a IA pode gerar
+    texto = re.sub(r'\n\s*---+\s*\n', '\n', texto)
+    # Colapsa múltiplas linhas em branco consecutivas em uma única
+    texto = re.sub(r'\n{3,}', '\n\n', texto)
+
     linhas = texto.split('\n')
     paragrafos = []
     pid = 1
+    ultima_foi_vazia = False
 
     for linha in linhas:
         t = linha.strip()
@@ -191,7 +197,18 @@ def texto_para_xml(texto):
         pid += 1
 
         if not t:
-            paragrafos.append(p_vazio(pid=pid_hex))
+            # Permite apenas UMA linha vazia consecutiva
+            if not ultima_foi_vazia:
+                paragrafos.append(p_vazio(pid=pid_hex))
+                ultima_foi_vazia = True
+            continue
+
+        ultima_foi_vazia = False
+
+        # Remove título redundante que já está no cabeçalho
+        if re.match(r'^\*?\*?RESPOSTA À NOTIFICAÇÃO EXTRAJUDICIAL\*?\*?$', t, re.IGNORECASE):
+            continue
+        if re.match(r'^\*?\*?CONTRANOTIFICAÇÃO EXTRAJUDICIAL\*?\*?$', t, re.IGNORECASE):
             continue
 
         # Detecta negrito **...**
@@ -202,14 +219,15 @@ def texto_para_xml(texto):
             partes_raw = re.split(r'\*\*(.+?)\*\*', t)
             partes = [(p, i % 2 == 1) for i, p in enumerate(partes_raw) if p]
             alinhamento = 'right' if tipo == 'direita' else ('center' if tipo == 'titulo' else 'both')
-            paragrafos.append(p_misto(partes, alinhamento=alinhamento, pid=pid_hex))
-        elif tipo == 'vazio':
-            paragrafos.append(p_vazio(pid=pid_hex))
+            sz = 20 if tipo == 'direita' else 24
+            paragrafos.append(p_misto(partes, alinhamento=alinhamento, sz=sz, pid=pid_hex))
         elif tipo == 'titulo':
             paragrafos.append(p_titulo(t, pid=pid_hex))
         elif tipo == 'direita':
-            sz = 20 if re.match(r'^(NOTIFICAD|SANKHYA|Av\.|Rua |CEP |CNPJ )', t) else 24
-            paragrafos.append(p_direita(t, bold=bold_default, sz=sz, pid=pid_hex))
+            # Linhas de identificação das partes — fonte 10pt (sz=20)
+            sz = 20
+            bold = bold_default or bool(re.match(r'^(NOTIFICAD[AO]:?|SANKHYA)', t))
+            paragrafos.append(p_direita(t, bold=bold, sz=sz, pid=pid_hex))
         else:
             paragrafos.append(p_corpo(t, bold=bold_default, pid=pid_hex))
 
