@@ -197,48 +197,48 @@ Retorne APENAS o texto da resposta. Use **negrito** para títulos e nomes das pa
 
 // ── Gera documento Word ──
 async function gerarDocumentoWord(textoMinuta, nomeArquivo) {
-  try { require.resolve('docx'); }
-  catch { execSync('npm install docx', { cwd: __dirname }); }
+  const outputPath = path.join(DADOS_DIR, nomeArquivo);
+  const templatePath = path.join(__dirname, 'template_notificacao.docx');
+  const scriptPath = path.join(__dirname, 'gerar_docx.py');
 
+  // Usa o template oficial com papel timbrado se disponível
+  if (fs.existsSync(templatePath) && fs.existsSync(scriptPath)) {
+    // Salva o texto em arquivo temporário para evitar problemas com aspas no shell
+    const tmpTxt = path.join(DADOS_DIR, `tmp_texto_${Date.now()}.txt`);
+    fs.writeFileSync(tmpTxt, textoMinuta, 'utf8');
+
+    try {
+      execSync(
+        `python3 "${scriptPath}" --file "${tmpTxt}" "${outputPath}" "${templatePath}"`,
+        { cwd: __dirname, timeout: 30000 }
+      );
+      return outputPath;
+    } catch (err) {
+      console.error('Erro no python, usando fallback:', err.message);
+    } finally {
+      try { fs.unlinkSync(tmpTxt); } catch {}
+    }
+  }
+
+  // Fallback: gera sem template (caso template não exista)
   const { Document, Packer, Paragraph, TextRun, AlignmentType } = require('docx');
-
   const linhas = textoMinuta.split('\n');
   const children = [];
-
   for (const linha of linhas) {
     const texto = linha.trim();
-    if (!texto) {
-      children.push(new Paragraph({ children: [new TextRun('')], spacing: { after: 120 } }));
-      continue;
-    }
+    if (!texto) { children.push(new Paragraph({ children: [new TextRun('')] })); continue; }
     const runs = [];
     const partes = texto.split(/\*\*(.+?)\*\*/g);
     for (let i = 0; i < partes.length; i++) {
       if (!partes[i]) continue;
-      runs.push(new TextRun({ text: partes[i], bold: i % 2 === 1, font: 'Arial', size: 24 }));
+      runs.push(new TextRun({ text: partes[i], bold: i % 2 === 1, font: 'Roboto', size: 24 }));
     }
-    children.push(new Paragraph({
-      children: runs,
-      spacing: { after: 160 },
-      alignment: AlignmentType.JUSTIFIED
-    }));
+    children.push(new Paragraph({ children: runs, alignment: AlignmentType.JUSTIFIED }));
   }
-
   const doc = new Document({
-    styles: { default: { document: { run: { font: 'Arial', size: 24 } } } },
-    sections: [{
-      properties: {
-        page: {
-          size: { width: 11906, height: 16838 },
-          margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
-        }
-      },
-      children
-    }]
+    sections: [{ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1701, right: 1134, bottom: 1417, left: 1134 } } }, children }]
   });
-
   const buffer = await Packer.toBuffer(doc);
-  const outputPath = path.join(DADOS_DIR, nomeArquivo);
   fs.writeFileSync(outputPath, buffer);
   return outputPath;
 }
@@ -412,6 +412,31 @@ const server = http.createServer(async (req, res) => {
 
       } catch (err) {
         console.error('Erro confirmar:', err);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ erro: err.message }));
+      }
+    });
+    return;
+  }
+
+  // API: GERAR-WORD — recebe texto editado e gera novo docx
+  if (method === 'POST' && pathname === '/api/gerar-word') {
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', async () => {
+      try {
+        const { textoEditado, nomeArquivo } = JSON.parse(body);
+        if (!textoEditado || !textoEditado.trim()) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ erro: 'Texto vazio' }));
+        }
+        const nomeBase = nomeArquivo.replace('.docx', '');
+        const nomeNovo = `${nomeBase}_editado_${Date.now()}.docx`;
+        await gerarDocumentoWord(textoEditado, nomeNovo);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, nomeArquivo: nomeNovo }));
+      } catch (err) {
+        console.error('Erro gerar-word:', err);
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ erro: err.message }));
       }
