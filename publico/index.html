@@ -4,204 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Central de Notificações — Jurídico Sankhya</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    /* ── Reset & Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Roboto', sans-serif;
-      background: #f0f2f5;
-      color: #2E3C50;
-      min-height: 100vh;
-    }
+    body { font-family: 'Roboto', sans-serif; background: #f0f2f5; color: #2E3C50; min-height: 100vh; }
 
-    /* ── Header ── */
     .header {
-      background: #2E3C50;
-      padding: 0 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: #2E3C50; padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      position: sticky; top: 0; z-index: 100;
     }
-    .header-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .header-logo { display: flex; align-items: center; gap: 12px; }
+    .logo-box {
+      background: #66CC66; width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Work Sans', sans-serif; font-weight: 700; font-size: 18px; color: white;
     }
-    .header-logo .logo-box {
-      background: #66CC66;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Work Sans', sans-serif;
-      font-weight: 700;
-      font-size: 18px;
-      color: white;
-    }
-    .header-logo .logo-text {
-      font-family: 'Work Sans', sans-serif;
-      font-weight: 700;
-      font-size: 18px;
-      color: white;
-    }
-    .header-logo .logo-sub {
-      font-family: 'Work Sans', sans-serif;
-      font-weight: 400;
-      font-size: 13px;
-      color: #a0b0c0;
-    }
-    .header-user {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .logo-text { font-family: 'Work Sans', sans-serif; font-weight: 700; font-size: 18px; color: white; }
+    .logo-sub { font-family: 'Work Sans', sans-serif; font-size: 13px; color: #a0b0c0; }
     .header-user select {
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-family: 'Roboto', sans-serif;
-      font-size: 13px;
-      cursor: pointer;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      color: white; padding: 6px 12px; border-radius: 6px;
+      font-family: 'Roboto', sans-serif; font-size: 13px; cursor: pointer;
     }
     .header-user select option { color: #2E3C50; background: white; }
 
-    /* ── Navegação ── */
     .nav {
-      background: white;
-      border-bottom: 1px solid #e0e6ed;
-      padding: 0 32px;
-      display: flex;
-      gap: 4px;
+      background: white; border-bottom: 1px solid #e0e6ed;
+      padding: 0 32px; display: flex; gap: 4px;
     }
     .nav-btn {
-      padding: 14px 20px;
-      border: none;
-      background: none;
-      font-family: 'Work Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      color: #6b7a8d;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      transition: all 0.2s;
+      padding: 14px 20px; border: none; background: none;
+      font-family: 'Work Sans', sans-serif; font-size: 14px; font-weight: 500;
+      color: #6b7a8d; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s;
     }
     .nav-btn:hover { color: #2E3C50; }
-    .nav-btn.ativo {
-      color: #66CC66;
-      border-bottom-color: #66CC66;
-      font-weight: 600;
-    }
+    .nav-btn.ativo { color: #66CC66; border-bottom-color: #66CC66; font-weight: 600; }
 
-    /* ── Main ── */
-    .main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 28px 24px;
-    }
-
-    /* ── Telas ── */
+    .main { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
     .tela { display: none; }
     .tela.ativa { display: block; }
 
-    /* ── Cards de Métricas ── */
-    .metricas {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-    .metrica-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-    .metrica-card .valor {
-      font-family: 'Work Sans', sans-serif;
-      font-size: 32px;
-      font-weight: 700;
-      color: #2E3C50;
-    }
-    .metrica-card .label {
-      font-size: 13px;
-      color: #8a96a3;
-      margin-top: 4px;
-    }
+    .metricas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .metrica-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .metrica-card .valor { font-family: 'Work Sans', sans-serif; font-size: 32px; font-weight: 700; color: #2E3C50; }
+    .metrica-card .label { font-size: 13px; color: #8a96a3; margin-top: 4px; }
     .metrica-card.verde .valor { color: #66CC66; }
     .metrica-card.amarelo .valor { color: #f59e0b; }
     .metrica-card.vermelho .valor { color: #ef4444; }
 
-    /* ── Tabela de Registros ── */
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      overflow: hidden;
-    }
+    .card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
     .card-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid #f0f2f5;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      padding: 20px 24px; border-bottom: 1px solid #f0f2f5;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .card-header h2 {
-      font-family: 'Work Sans', sans-serif;
-      font-size: 16px;
-      font-weight: 600;
-      color: #2E3C50;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    .card-header h2 { font-family: 'Work Sans', sans-serif; font-size: 16px; font-weight: 600; }
+
+    table { width: 100%; border-collapse: collapse; }
     th {
-      background: #f8f9fb;
-      padding: 12px 16px;
-      text-align: left;
-      font-family: 'Work Sans', sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      color: #8a96a3;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      background: #f8f9fb; padding: 12px 16px; text-align: left;
+      font-family: 'Work Sans', sans-serif; font-size: 12px; font-weight: 600;
+      color: #8a96a3; text-transform: uppercase; letter-spacing: 0.5px;
     }
-    td {
-      padding: 14px 16px;
-      font-size: 14px;
-      border-bottom: 1px solid #f0f2f5;
-      vertical-align: middle;
-    }
+    td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #fafbfc; }
 
-    /* ── Semáforo ── */
     .semaforo {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
     }
-    .semaforo::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
+    .semaforo::before { content: ''; width: 8px; height: 8px; border-radius: 50%; }
     .semaforo.verde { background: #e8f8e8; color: #15803d; }
     .semaforo.verde::before { background: #66CC66; }
     .semaforo.amarelo { background: #fef9e7; color: #92400e; }
@@ -211,371 +85,118 @@
     .semaforo.vencido { background: #fce7f3; color: #831843; }
     .semaforo.vencido::before { background: #ec4899; }
 
-    /* ── Badge tipo ── */
-    .badge-tipo {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      background: #e8f0fe;
-      color: #1e40af;
-    }
+    .badge-tipo { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #e8f0fe; color: #1e40af; }
 
-    /* ── Botões ── */
-    .btn {
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-family: 'Work Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s;
-    }
-    .btn-primary {
-      background: #66CC66;
-      color: white;
-    }
+    .btn { padding: 10px 20px; border-radius: 8px; font-family: 'Work Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-primary { background: #66CC66; color: white; }
     .btn-primary:hover { background: #55bb55; }
     .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
-    .btn-secondary {
-      background: #f0f2f5;
-      color: #2E3C50;
-    }
+    .btn-secondary { background: #f0f2f5; color: #2E3C50; }
     .btn-secondary:hover { background: #e0e6ed; }
-    .btn-danger {
-      background: #fef2f2;
-      color: #ef4444;
-    }
-    .btn-danger:hover { background: #fee2e2; }
-    .btn-sm {
-      padding: 6px 12px;
-      font-size: 12px;
-    }
-    .btn-icon {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 16px;
-      transition: background 0.2s;
-    }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-icon { background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 16px; }
     .btn-icon:hover { background: #f0f2f5; }
 
-    /* ── Formulário de nova notificação ── */
-    .form-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      padding: 28px;
-    }
-    .form-titulo {
-      font-family: 'Work Sans', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: #2E3C50;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid #f0f2f5;
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    .form-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 28px; }
+    .form-titulo { font-family: 'Work Sans', sans-serif; font-size: 18px; font-weight: 700; color: #2E3C50; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #f0f2f5; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group.full { grid-column: 1 / -1; }
-    label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #4a5568;
-    }
+    label { font-size: 13px; font-weight: 600; color: #4a5568; }
     .required::after { content: ' *'; color: #ef4444; }
-    input[type="text"],
-    input[type="date"],
-    input[type="email"],
-    select,
-    textarea {
-      padding: 10px 12px;
-      border: 1.5px solid #e0e6ed;
-      border-radius: 8px;
-      font-family: 'Roboto', sans-serif;
-      font-size: 14px;
-      color: #2E3C50;
-      transition: border-color 0.2s;
-      background: white;
+    input[type="text"], input[type="date"], input[type="email"], select, textarea {
+      padding: 10px 12px; border: 1.5px solid #e0e6ed; border-radius: 8px;
+      font-family: 'Roboto', sans-serif; font-size: 14px; color: #2E3C50;
+      transition: border-color 0.2s; background: white;
     }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: #66CC66;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 120px;
-    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #66CC66; }
+    textarea { resize: vertical; min-height: 120px; }
+    input[readonly] { background: #f8f9fb; color: #6b7a8d; }
 
-    /* ── Upload ── */
+    /* Upload */
     .upload-area {
-      border: 2px dashed #c8d5e0;
-      border-radius: 10px;
-      padding: 32px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: #fafbfc;
+      border: 2px dashed #c8d5e0; border-radius: 10px; padding: 40px 32px;
+      text-align: center; cursor: pointer; transition: all 0.2s; background: #fafbfc;
     }
     .upload-area:hover, .upload-area.drag { border-color: #66CC66; background: #f0faf0; }
-    .upload-area .icon { font-size: 36px; margin-bottom: 10px; }
+    .upload-area .icon { font-size: 40px; margin-bottom: 12px; }
     .upload-area p { font-size: 14px; color: #6b7a8d; }
-    .upload-area .destaque { color: #66CC66; font-weight: 600; cursor: pointer; }
+    .upload-area .destaque { color: #66CC66; font-weight: 600; }
     .upload-area input[type="file"] { display: none; }
     .arquivo-selecionado {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      background: #e8f8e8;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #15803d;
+      display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+      background: #e8f8e8; border-radius: 8px; font-size: 14px; color: #15803d;
     }
 
-    /* ── Separador OU ── */
-    .separador {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 16px 0;
-    }
-    .separador::before, .separador::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #e0e6ed;
-    }
-    .separador span {
-      font-size: 12px;
-      color: #8a96a3;
-      font-weight: 600;
-    }
+    .separador { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+    .separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: #e0e6ed; }
+    .separador span { font-size: 12px; color: #8a96a3; font-weight: 600; }
 
-    /* ── Painel de análise ── */
-    .analise-painel {
-      background: #f8f9fb;
-      border: 1.5px solid #e0e6ed;
-      border-radius: 10px;
-      padding: 20px;
-      margin-top: 20px;
-      display: none;
+    /* Passos */
+    .passos { display: flex; margin-bottom: 28px; }
+    .passo { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; }
+    .passo:not(:last-child)::after { content: ''; position: absolute; top: 16px; left: 50%; width: 100%; height: 2px; background: #e0e6ed; z-index: 0; }
+    .passo.concluido:not(:last-child)::after { background: #66CC66; }
+    .passo-num { width: 32px; height: 32px; border-radius: 50%; background: #e0e6ed; color: #8a96a3; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; z-index: 1; transition: all 0.3s; }
+    .passo.ativo .passo-num { background: #66CC66; color: white; }
+    .passo.concluido .passo-num { background: #2E3C50; color: white; }
+    .passo-label { font-size: 12px; color: #8a96a3; font-weight: 500; text-align: center; }
+    .passo.ativo .passo-label { color: #66CC66; font-weight: 600; }
+    .passo.concluido .passo-label { color: #2E3C50; }
+
+    .etapa { display: none; }
+    .etapa.ativa { display: block; }
+
+    /* Análise IA */
+    .analise-bloco {
+      background: #f8f9fb; border: 1.5px solid #e0e6ed; border-radius: 10px;
+      padding: 20px; margin-bottom: 20px;
     }
-    .analise-painel.visivel { display: block; }
-    .analise-titulo {
-      font-family: 'Work Sans', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      color: #2E3C50;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .analise-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .analise-item label {
-      font-size: 11px;
-      color: #8a96a3;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 3px;
-    }
-    .analise-item p {
-      font-size: 14px;
-      color: #2E3C50;
-    }
+    .analise-titulo { font-family: 'Work Sans', sans-serif; font-size: 14px; font-weight: 700; color: #2E3C50; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .analise-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .analise-item label { font-size: 11px; color: #8a96a3; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .analise-item p { font-size: 14px; color: #2E3C50; }
     .analise-item.full { grid-column: 1 / -1; }
 
-    /* ── Minuta gerada ── */
-    .minuta-painel {
-      background: white;
-      border: 1.5px solid #66CC66;
-      border-radius: 10px;
-      padding: 24px;
-      margin-top: 20px;
-      display: none;
-    }
-    .minuta-painel.visivel { display: block; }
+    /* Minuta */
     .minuta-content {
-      font-size: 13px;
-      line-height: 1.8;
-      color: #2E3C50;
-      white-space: pre-wrap;
-      max-height: 400px;
-      overflow-y: auto;
-      padding: 16px;
-      background: #fafbfc;
-      border-radius: 8px;
-      border: 1px solid #e0e6ed;
+      font-size: 13px; line-height: 1.8; color: #2E3C50; white-space: pre-wrap;
+      max-height: 420px; overflow-y: auto; padding: 16px;
+      background: #fafbfc; border-radius: 8px; border: 1px solid #e0e6ed;
     }
 
-    /* ── Loading ── */
-    .loading {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      padding: 32px;
-      color: #6b7a8d;
-      font-size: 14px;
-    }
+    /* Loading */
+    .loading { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 40px; color: #6b7a8d; font-size: 14px; }
     .loading.visivel { display: flex; }
-    .spinner {
-      width: 36px;
-      height: 36px;
-      border: 3px solid #e0e6ed;
-      border-top-color: #66CC66;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
+    .spinner { width: 36px; height: 36px; border: 3px solid #e0e6ed; border-top-color: #66CC66; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Alertas ── */
-    .alerta {
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      margin-bottom: 16px;
-      display: none;
-    }
+    /* Alertas */
+    .alerta { padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; display: none; }
     .alerta.visivel { display: block; }
     .alerta.erro { background: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444; }
     .alerta.sucesso { background: #e8f8e8; color: #15803d; border-left: 4px solid #66CC66; }
     .alerta.info { background: #e8f0fe; color: #1e40af; border-left: 4px solid #3b82f6; }
 
-    /* ── Passos ── */
-    .passos {
-      display: flex;
-      gap: 0;
-      margin-bottom: 28px;
-    }
-    .passo {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      position: relative;
-    }
-    .passo:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      top: 16px;
-      left: 50%;
-      width: 100%;
-      height: 2px;
-      background: #e0e6ed;
-      z-index: 0;
-    }
-    .passo.concluido:not(:last-child)::after { background: #66CC66; }
-    .passo-num {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: #e0e6ed;
-      color: #8a96a3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 14px;
-      z-index: 1;
-      transition: all 0.3s;
-    }
-    .passo.ativo .passo-num { background: #66CC66; color: white; }
-    .passo.concluido .passo-num { background: #2E3C50; color: white; }
-    .passo-label {
-      font-size: 12px;
-      color: #8a96a3;
-      font-weight: 500;
-      text-align: center;
-    }
-    .passo.ativo .passo-label { color: #66CC66; font-weight: 600; }
-    .passo.concluido .passo-label { color: #2E3C50; }
+    .acoes { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
 
-    /* ── Etapas do formulário ── */
-    .etapa { display: none; }
-    .etapa.ativa { display: block; }
+    .tipos-map { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .tipo-card { padding: 14px; border: 1.5px solid #e0e6ed; border-radius: 8px; background: #fafbfc; }
+    .tipo-card .tipo-icone { font-size: 20px; margin-bottom: 4px; }
+    .tipo-card .tipo-nome { font-weight: 600; color: #2E3C50; font-size: 12px; }
+    .tipo-card .tipo-count { font-size: 22px; font-weight: 700; color: #66CC66; }
 
-    /* ── Ações da minuta ── */
-    .acoes-minuta {
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
+    .footer { text-align: center; padding: 24px; font-size: 12px; color: #a0b0c0; }
 
-    /* ── Status badge ── */
-    .status-badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .status-minuta_gerada { background: #e8f0fe; color: #1e40af; }
-    .status-enviada { background: #e8f8e8; color: #15803d; }
-    .status-em_revisao { background: #fef9e7; color: #92400e; }
-    .status-concluida { background: #f0faf0; color: #065f46; }
-
-    /* ── Mapa de tipos ── */
-    .tipos-map {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .tipo-card {
-      padding: 16px;
-      border: 1.5px solid #e0e6ed;
-      border-radius: 8px;
-      font-size: 13px;
-      color: #4a5568;
-      background: #fafbfc;
-    }
-    .tipo-card .tipo-icone { font-size: 20px; margin-bottom: 6px; }
-    .tipo-card .tipo-nome { font-weight: 600; color: #2E3C50; font-size: 13px; }
-    .tipo-card .tipo-count { font-size: 20px; font-weight: 700; color: #66CC66; }
-
-    /* ── Rodapé ── */
-    .footer {
-      text-align: center;
-      padding: 24px;
-      font-size: 12px;
-      color: #a0b0c0;
-    }
-
-    /* ── Responsivo ── */
     @media (max-width: 768px) {
       .metricas { grid-template-columns: repeat(2, 1fr); }
-      .form-grid { grid-template-columns: 1fr; }
-      .analise-grid { grid-template-columns: 1fr; }
+      .form-grid, .analise-grid { grid-template-columns: 1fr; }
       .tipos-map { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
 
-<!-- Header -->
 <div class="header">
   <div class="header-logo">
     <div class="logo-box">S</div>
@@ -591,104 +212,31 @@
   </div>
 </div>
 
-<!-- Navegação -->
+<!-- Nav: Nova Notificação primeiro, Dashboard segundo -->
 <div class="nav">
-  <button class="nav-btn ativo" onclick="mostrarTela('dashboard', this)">📊 Dashboard</button>
-  <button class="nav-btn" onclick="mostrarTela('nova', this)">➕ Nova Notificação</button>
+  <button class="nav-btn ativo" onclick="mostrarTela('nova', this)">➕ Nova Notificação</button>
+  <button class="nav-btn" onclick="mostrarTela('dashboard', this)">📊 Dashboard</button>
   <button class="nav-btn" onclick="mostrarTela('historico', this)">📋 Histórico</button>
 </div>
 
-<!-- Conteúdo Principal -->
 <div class="main">
 
-  <!-- ═══════════════════════════════════════════════
-       TELA: DASHBOARD
-  ═══════════════════════════════════════════════ -->
-  <div id="tela-dashboard" class="tela ativa">
+  <!-- ═══════════════ NOVA NOTIFICAÇÃO ═══════════════ -->
+  <div id="tela-nova" class="tela ativa">
 
-    <div class="metricas" id="metricas"></div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-      <!-- Por tipo -->
-      <div class="card">
-        <div class="card-header">
-          <h2>Por Tipo de Notificação</h2>
-        </div>
-        <div style="padding: 20px;">
-          <div class="tipos-map" id="tiposMap"></div>
-        </div>
-      </div>
-      <!-- Próximos vencimentos -->
-      <div class="card">
-        <div class="card-header">
-          <h2>⚠️ Atenção Imediata</h2>
-        </div>
-        <div style="padding: 16px;" id="alertasVencimento"></div>
-      </div>
-    </div>
-
-    <!-- Notificações recentes -->
-    <div class="card">
-      <div class="card-header">
-        <h2>Notificações Recentes</h2>
-        <button class="btn btn-primary btn-sm" onclick="mostrarTela('nova', document.querySelector('.nav-btn:nth-child(2))'))">
-          + Nova Notificação
-        </button>
-      </div>
-      <div id="tabelaRecentes"></div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════
-       TELA: NOVA NOTIFICAÇÃO
-  ═══════════════════════════════════════════════ -->
-  <div id="tela-nova" class="tela">
-
-    <!-- Passos -->
     <div class="passos">
-      <div class="passo ativo" id="passo-1">
-        <div class="passo-num">1</div>
-        <div class="passo-label">Dados & Documento</div>
-      </div>
-      <div class="passo" id="passo-2">
-        <div class="passo-num">2</div>
-        <div class="passo-label">Análise IA</div>
-      </div>
-      <div class="passo" id="passo-3">
-        <div class="passo-num">3</div>
-        <div class="passo-label">Confirmar & Gerar</div>
-      </div>
+      <div class="passo ativo" id="passo-1"><div class="passo-num">1</div><div class="passo-label">Upload & Análise IA</div></div>
+      <div class="passo" id="passo-2"><div class="passo-num">2</div><div class="passo-label">Confirmar Dados</div></div>
+      <div class="passo" id="passo-3"><div class="passo-num">3</div><div class="passo-label">Minuta Gerada</div></div>
     </div>
 
     <div id="alerta-nova" class="alerta"></div>
 
-    <!-- ETAPA 1: Upload + Dados básicos -->
+    <!-- ETAPA 1: Upload → IA analisa e extrai tudo -->
     <div class="form-card etapa ativa" id="etapa-1">
-      <div class="form-titulo">📥 Dados da Notificação Recebida</div>
+      <div class="form-titulo">📥 Envie a Notificação Recebida</div>
 
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="required">Advogado Responsável</label>
-          <select id="advogadoForm">
-            <option value="">Selecione...</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="required">Data de Recebimento</label>
-          <input type="date" id="dataRecebimento">
-        </div>
-        <div class="form-group">
-          <label>Setor que Encaminhou</label>
-          <input type="text" id="setorSolicitante" placeholder="Ex: Sucesso do Cliente, Comercial...">
-        </div>
-        <div class="form-group">
-          <label>Número do Flow (opcional nesta etapa)</label>
-          <input type="text" id="flowEtapa1" placeholder="Será exigido antes de gerar o documento">
-        </div>
-      </div>
-
-      <!-- Upload de arquivo -->
-      <div class="form-group full" style="margin-bottom: 8px;">
+      <div class="form-group" style="margin-bottom: 16px;">
         <label>Documento da Notificação (PDF ou Word)</label>
         <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()"
              ondragover="event.preventDefault(); this.classList.add('drag')"
@@ -696,41 +244,41 @@
              ondrop="handleDrop(event)">
           <div class="icon">📄</div>
           <p>Arraste o arquivo aqui ou <span class="destaque">clique para selecionar</span></p>
-          <p style="font-size: 12px; margin-top: 6px;">PDF ou Word (.docx) — até 10MB</p>
+          <p style="font-size: 12px; margin-top: 6px; color: #a0b0c0;">PDF ou Word (.docx) — a IA lê e extrai os dados automaticamente</p>
           <input type="file" id="fileInput" accept=".pdf,.docx,.doc" onchange="handleFileSelect(event)">
         </div>
         <div class="arquivo-selecionado" id="arquivoSelecionado" style="display:none;">
           <span>📄</span>
           <span id="nomeArquivoSelecionado"></span>
-          <button onclick="removerArquivo()" style="margin-left:auto; background:none; border:none; cursor:pointer; color:#ef4444;">✕</button>
+          <button onclick="removerArquivo()" style="margin-left:auto; background:none; border:none; cursor:pointer; color:#ef4444; font-size:16px;">✕</button>
         </div>
       </div>
 
       <div class="separador"><span>OU</span></div>
 
-      <div class="form-group full">
+      <div class="form-group" style="margin-bottom: 20px;">
         <label>Cole o texto da notificação diretamente</label>
         <textarea id="textoManual" placeholder="Cole aqui o texto completo da notificação recebida..."></textarea>
       </div>
 
-      <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
-        <button class="btn btn-primary" onclick="executarAnalise()">
-          🔍 Analisar com IA →
-        </button>
+      <div style="display: flex; justify-content: flex-end;">
+        <button class="btn btn-primary" onclick="executarAnalise()">🔍 Analisar com IA →</button>
       </div>
     </div>
 
     <!-- Loading análise -->
     <div class="loading" id="loadingAnalise">
       <div class="spinner"></div>
-      <span>Analisando a notificação com inteligência artificial...</span>
+      <span>Lendo e analisando a notificação...</span>
     </div>
 
-    <!-- ETAPA 2: Resultado da análise -->
+    <!-- ETAPA 2: IA preencheu tudo, advogado confirma e completa -->
     <div class="form-card etapa" id="etapa-2">
-      <div class="form-titulo">🤖 Análise da IA — Confirme os Dados</div>
+      <div class="form-titulo">✅ Dados Extraídos — Confirme e Complemente</div>
 
-      <div class="analise-painel visivel" id="painelAnalise">
+      <!-- Bloco IA -->
+      <div class="analise-bloco">
+        <div class="analise-titulo">🤖 Identificado pela IA</div>
         <div class="analise-grid">
           <div class="analise-item">
             <label>Notificante</label>
@@ -745,36 +293,45 @@
             <p id="ai-tipo">—</p>
           </div>
           <div class="analise-item">
-            <label>Tema</label>
-            <p id="ai-tema">—</p>
+            <label>Data da Notificação</label>
+            <p id="ai-data-notif">—</p>
           </div>
           <div class="analise-item full">
-            <label>Resumo da Notificação</label>
-            <p id="ai-resumo">—</p>
+            <label>Resumo</label>
+            <p id="ai-resumo" style="font-size:13px; line-height:1.6;">—</p>
           </div>
           <div class="analise-item full">
-            <label>Exigências do Notificante</label>
-            <p id="ai-exigencias">—</p>
+            <label>Exigências</label>
+            <p id="ai-exigencias" style="font-size:13px; line-height:1.6;">—</p>
           </div>
         </div>
       </div>
 
-      <div class="form-grid" style="margin-top: 20px;">
+      <!-- Campos que o advogado preenche -->
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="required">Advogado Responsável</label>
+          <select id="advogadoForm">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="required">Data de Recebimento</label>
+          <input type="date" id="dataRecebimento">
+        </div>
         <div class="form-group">
           <label class="required">Número do Flow</label>
-          <input type="text" id="flowEtapa2" placeholder="Ex: 20182927">
+          <input type="text" id="numeroFlow" placeholder="Ex: 20182927">
         </div>
         <div class="form-group">
-          <label>Advogado Responsável</label>
-          <input type="text" id="advogadoConfirma" readonly style="background:#f8f9fb;">
+          <label>Setor que Encaminhou</label>
+          <input type="text" id="setorSolicitante" placeholder="Ex: Sucesso do Cliente, Comercial...">
         </div>
       </div>
 
-      <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+      <div style="display: flex; justify-content: space-between;">
         <button class="btn btn-secondary" onclick="voltarEtapa1()">← Voltar</button>
-        <button class="btn btn-primary" onclick="confirmarEGerar()">
-          ✅ Confirmar e Gerar Resposta →
-        </button>
+        <button class="btn btn-primary" onclick="confirmarEGerar()">✅ Gerar Minuta de Resposta →</button>
       </div>
     </div>
 
@@ -787,43 +344,46 @@
     <!-- ETAPA 3: Minuta gerada -->
     <div class="form-card etapa" id="etapa-3">
       <div class="form-titulo" style="color: #15803d;">✅ Minuta Gerada com Sucesso!</div>
-
-      <div class="alerta sucesso visivel" id="alertaSucesso">
-        A minuta de resposta foi gerada e registrada no sistema. Revise o documento abaixo antes de enviar.
-      </div>
-
-      <div class="card-header" style="padding: 0 0 16px 0;">
-        <span style="font-size: 14px; color: #6b7a8d;">Prévia da minuta gerada pela IA:</span>
-      </div>
+      <div class="alerta sucesso visivel">Revise o documento abaixo antes de enviar ao notificante.</div>
       <div class="minuta-content" id="conteudoMinuta"></div>
-
-      <div class="acoes-minuta">
-        <button class="btn btn-primary" id="btnDownload" onclick="baixarDocumento()">
-          ⬇️ Baixar Word (.docx)
-        </button>
-        <button class="btn btn-secondary" onclick="novaNotificacao()">
-          + Nova Notificação
-        </button>
-        <button class="btn btn-secondary" onclick="mostrarTela('historico', null)">
-          📋 Ver Histórico
-        </button>
+      <div class="acoes">
+        <button class="btn btn-primary" onclick="baixarDocumento()">⬇️ Baixar Word (.docx)</button>
+        <button class="btn btn-secondary" onclick="novaNotificacao()">+ Nova Notificação</button>
+        <button class="btn btn-secondary" onclick="mostrarTela('historico', document.querySelectorAll('.nav-btn')[2])">📋 Ver Histórico</button>
       </div>
-
       <div class="alerta info visivel" style="margin-top: 16px;">
-        💡 <strong>Lembre-se:</strong> Revise a minuta antes de enviar. A IA gera um rascunho de alta qualidade, mas a validação jurídica final é sempre do advogado responsável.
+        💡 <strong>Atenção:</strong> A IA gera um rascunho de alta qualidade baseado nos seus documentos reais. A validação jurídica final é sempre responsabilidade do advogado responsável.
       </div>
     </div>
 
   </div>
 
-  <!-- ═══════════════════════════════════════════════
-       TELA: HISTÓRICO
-  ═══════════════════════════════════════════════ -->
-  <div id="tela-historico" class="tela">
+  <!-- ═══════════════ DASHBOARD ═══════════════ -->
+  <div id="tela-dashboard" class="tela">
+    <div class="metricas" id="metricas"></div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+      <div class="card">
+        <div class="card-header"><h2>Por Tipo de Notificação</h2></div>
+        <div style="padding: 20px;"><div class="tipos-map" id="tiposMap"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>⚠️ Atenção Imediata</h2></div>
+        <div style="padding: 16px;" id="alertasVencimento"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>Notificações Recentes</h2>
+        <button class="btn btn-primary btn-sm" onclick="mostrarTela('nova', document.querySelectorAll('.nav-btn')[0])">+ Nova</button>
+      </div>
+      <div id="tabelaRecentes"></div>
+    </div>
+  </div>
 
-    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-      <input type="text" id="buscaHistorico" placeholder="🔍 Buscar por nome, tipo, advogado..." 
-             style="flex: 1;" oninput="filtrarHistorico()">
+  <!-- ═══════════════ HISTÓRICO ═══════════════ -->
+  <div id="tela-historico" class="tela">
+    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+      <input type="text" id="buscaHistorico" placeholder="🔍 Buscar por nome, tipo, advogado, Flow..." style="flex:1;" oninput="filtrarHistorico()">
       <select id="filtroTipo" onchange="filtrarHistorico()" style="min-width: 200px;">
         <option value="">Todos os tipos</option>
         <option value="FALHA_SOFTWARE">Falha de Software</option>
@@ -834,7 +394,6 @@
         <option value="OUTRO">Outro</option>
       </select>
     </div>
-
     <div class="card" id="tabelaHistorico"></div>
   </div>
 
@@ -843,14 +402,6 @@
 <div class="footer">Sankhya Legal — Módulo 3: Central de Notificações Extrajudiciais · Departamento Jurídico</div>
 
 <script>
-// ── Estado global ──
-let advogadoAtual = '';
-let analiseAtual = null;
-let registroAtualId = null;
-let arquivoAtualNome = null;
-let todosRegistros = [];
-
-// ── Mapa de tipos legível ──
 const tiposLabel = {
   FALHA_SOFTWARE: { label: 'Falha de Software', icone: '🖥️' },
   RESCISAO_CONTRATO: { label: 'Rescisão / Distrato', icone: '📄' },
@@ -860,210 +411,53 @@ const tiposLabel = {
   OUTRO: { label: 'Outro', icone: '📌' }
 };
 
-// ── Inicialização ──
+let advogadoAtual = '';
+let analiseAtual = null;
+let arquivoAtualNome = null;
+let arquivoSelecionado = null;
+let todosRegistros = [];
+
 window.addEventListener('DOMContentLoaded', async () => {
-  // Preenche selects de advogados
   const resp = await fetch('/api/advogados');
   const advs = await resp.json();
-  const selects = document.querySelectorAll('#selectAdvogado, #advogadoForm');
-  selects.forEach(sel => {
+  ['selectAdvogado', 'advogadoForm'].forEach(id => {
+    const sel = document.getElementById(id);
     advs.forEach(a => {
       const opt = document.createElement('option');
-      opt.value = a;
-      opt.textContent = a;
+      opt.value = a; opt.textContent = a;
       sel.appendChild(opt);
     });
   });
-
-  // Define data de hoje como padrão
   document.getElementById('dataRecebimento').value = new Date().toISOString().split('T')[0];
-
-  // Carrega dashboard
-  await carregarDashboard();
 });
 
 function setAdvogado(val) {
   advogadoAtual = val;
   document.getElementById('advogadoForm').value = val;
-  document.getElementById('advogadoConfirma').value = val;
 }
 
-// ── Navegação entre telas ──
 function mostrarTela(nome, btn) {
   document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('ativo'));
   document.getElementById('tela-' + nome).classList.add('ativa');
   if (btn) btn.classList.add('ativo');
-
   if (nome === 'dashboard') carregarDashboard();
   if (nome === 'historico') carregarHistorico();
 }
 
-// ── Dashboard ──
-async function carregarDashboard() {
-  const resp = await fetch('/api/registros');
-  todosRegistros = await resp.json();
-
-  // Métricas
-  const total = todosRegistros.length;
-  const verdes = todosRegistros.filter(r => r.semaforo === 'verde').length;
-  const amarelos = todosRegistros.filter(r => r.semaforo === 'amarelo').length;
-  const vermelhos = todosRegistros.filter(r => ['vermelho', 'vencido'].includes(r.semaforo)).length;
-
-  document.getElementById('metricas').innerHTML = `
-    <div class="metrica-card">
-      <div class="valor">${total}</div>
-      <div class="label">Total de Notificações</div>
-    </div>
-    <div class="metrica-card verde">
-      <div class="valor">${verdes}</div>
-      <div class="label">✅ Dentro do Prazo</div>
-    </div>
-    <div class="metrica-card amarelo">
-      <div class="valor">${amarelos}</div>
-      <div class="label">⚠️ Atenção (≤7 dias)</div>
-    </div>
-    <div class="metrica-card vermelho">
-      <div class="valor">${vermelhos}</div>
-      <div class="label">🔴 Urgente / Vencido</div>
-    </div>
-  `;
-
-  // Por tipo
-  const contTipos = {};
-  todosRegistros.forEach(r => {
-    contTipos[r.tipoNotificacao] = (contTipos[r.tipoNotificacao] || 0) + 1;
-  });
-  const tiposHtml = Object.entries(tiposLabel).map(([k, v]) => `
-    <div class="tipo-card">
-      <div class="tipo-icone">${v.icone}</div>
-      <div class="tipo-nome">${v.label}</div>
-      <div class="tipo-count">${contTipos[k] || 0}</div>
-    </div>
-  `).join('');
-  document.getElementById('tiposMap').innerHTML = tiposHtml || '<p style="color:#8a96a3; font-size:13px;">Nenhum registro ainda.</p>';
-
-  // Alertas de vencimento
-  const urgentes = todosRegistros
-    .filter(r => ['amarelo', 'vermelho', 'vencido'].includes(r.semaforo))
-    .slice(0, 5);
-
-  if (urgentes.length === 0) {
-    document.getElementById('alertasVencimento').innerHTML = '<p style="color:#15803d; font-size:13px; padding:8px 0;">✅ Nenhuma notificação com prazo crítico no momento.</p>';
-  } else {
-    document.getElementById('alertasVencimento').innerHTML = urgentes.map(r => `
-      <div style="padding: 10px 0; border-bottom: 1px solid #f0f2f5; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <p style="font-weight:600; font-size:13px;">${r.nomeNotificante}</p>
-          <p style="font-size:12px; color:#8a96a3;">Vence: ${formatarDataBR(r.dataVencimento)} · ${r.nomeAdvogado}</p>
-        </div>
-        <span class="semaforo ${r.semaforo}">${r.semaforo === 'vencido' ? 'Vencido' : r.semaforo === 'vermelho' ? 'Urgente' : 'Atenção'}</span>
-      </div>
-    `).join('');
-  }
-
-  // Tabela recentes
-  renderizarTabela(todosRegistros.slice(0, 8), 'tabelaRecentes');
-}
-
-// ── Histórico ──
-async function carregarHistorico() {
-  const resp = await fetch('/api/registros');
-  todosRegistros = await resp.json();
-  renderizarTabela(todosRegistros, 'tabelaHistorico');
-}
-
-function filtrarHistorico() {
-  const busca = document.getElementById('buscaHistorico').value.toLowerCase();
-  const tipo = document.getElementById('filtroTipo').value;
-  const filtrados = todosRegistros.filter(r => {
-    const matchBusca = !busca ||
-      r.nomeNotificante.toLowerCase().includes(busca) ||
-      r.nomeAdvogado.toLowerCase().includes(busca) ||
-      r.temaResumido.toLowerCase().includes(busca) ||
-      (r.numeroFlow || '').toLowerCase().includes(busca);
-    const matchTipo = !tipo || r.tipoNotificacao === tipo;
-    return matchBusca && matchTipo;
-  });
-  renderizarTabela(filtrados, 'tabelaHistorico');
-}
-
-function renderizarTabela(registros, containerId) {
-  const container = document.getElementById(containerId);
-  if (!registros.length) {
-    container.innerHTML = '<p style="padding: 32px; text-align: center; color: #8a96a3; font-size: 14px;">Nenhum registro encontrado.</p>';
-    return;
-  }
-
-  const isAdmin = advogadoAtual === 'Vinícius';
-
-  container.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Notificante</th>
-          <th>Tipo</th>
-          <th>Advogado</th>
-          <th>Flow</th>
-          <th>Vencimento</th>
-          <th>Prazo</th>
-          <th>Status</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${registros.map(r => `
-          <tr>
-            <td>
-              <div style="font-weight:600; font-size:13px;">${r.nomeNotificante}</div>
-              <div style="font-size:11px; color:#8a96a3;">${r.cnpjNotificante || ''}</div>
-            </td>
-            <td><span class="badge-tipo">${tiposLabel[r.tipoNotificacao]?.icone || ''} ${tiposLabel[r.tipoNotificacao]?.label || r.tipoNotificacao}</span></td>
-            <td style="font-size:13px;">${r.nomeAdvogado}</td>
-            <td style="font-size:13px; font-family: monospace;">${r.numeroFlow || '—'}</td>
-            <td style="font-size:13px;">${formatarDataBR(r.dataVencimento)}</td>
-            <td><span class="semaforo ${r.semaforo}">${diasRestantes(r.dataVencimento)}</span></td>
-            <td>
-              <select onchange="atualizarStatus('${r.id}', this.value)" style="font-size:11px; padding:4px 6px; border-radius:4px; border:1px solid #e0e6ed;">
-                <option value="minuta_gerada" ${r.status==='minuta_gerada'?'selected':''}>Minuta Gerada</option>
-                <option value="em_revisao" ${r.status==='em_revisao'?'selected':''}>Em Revisão</option>
-                <option value="enviada" ${r.status==='enviada'?'selected':''}>Enviada</option>
-                <option value="concluida" ${r.status==='concluida'?'selected':''}>Concluída</option>
-              </select>
-            </td>
-            <td>
-              ${r.arquivoGerado ? `<button class="btn-icon" onclick="downloadDireto('${encodeURIComponent(r.arquivoGerado)}')" title="Baixar documento">⬇️</button>` : ''}
-              ${isAdmin ? `<button class="btn-icon" onclick="deletarRegistro('${r.id}')" title="Excluir (admin)">🗑️</button>` : ''}
-            </td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
-}
-
-// ── Upload de arquivo ──
-let arquivoSelecionado = null;
-
-function handleFileSelect(event) {
-  const file = event.target.files[0];
-  if (file) definirArquivo(file);
-}
-
-function handleDrop(event) {
-  event.preventDefault();
+// Upload
+function handleFileSelect(e) { if (e.target.files[0]) definirArquivo(e.target.files[0]); }
+function handleDrop(e) {
+  e.preventDefault();
   document.getElementById('uploadArea').classList.remove('drag');
-  const file = event.dataTransfer.files[0];
-  if (file) definirArquivo(file);
+  if (e.dataTransfer.files[0]) definirArquivo(e.dataTransfer.files[0]);
 }
-
 function definirArquivo(file) {
   arquivoSelecionado = file;
   document.getElementById('uploadArea').style.display = 'none';
   document.getElementById('arquivoSelecionado').style.display = 'flex';
   document.getElementById('nomeArquivoSelecionado').textContent = file.name;
 }
-
 function removerArquivo() {
   arquivoSelecionado = null;
   document.getElementById('fileInput').value = '';
@@ -1071,63 +465,45 @@ function removerArquivo() {
   document.getElementById('arquivoSelecionado').style.display = 'none';
 }
 
-// ── Executar análise IA (Etapa 1 → 2) ──
+// ETAPA 1 → 2: IA analisa e extrai tudo
 async function executarAnalise() {
-  const dataRecebimento = document.getElementById('dataRecebimento').value;
-  const nomeAdvogado = document.getElementById('advogadoForm').value;
   const textoManual = document.getElementById('textoManual').value.trim();
-
-  if (!dataRecebimento) {
-    mostrarAlerta('nova', 'erro', 'Informe a data de recebimento.');
-    return;
-  }
-  if (!nomeAdvogado) {
-    mostrarAlerta('nova', 'erro', 'Selecione o advogado responsável.');
-    return;
-  }
   if (!arquivoSelecionado && !textoManual) {
-    mostrarAlerta('nova', 'erro', 'Faça upload do documento ou cole o texto da notificação.');
+    mostrarAlerta('erro', 'Faça upload do documento ou cole o texto da notificação.');
     return;
   }
 
-  // Esconde etapa 1 e mostra loading
   document.getElementById('etapa-1').classList.remove('ativa');
   document.getElementById('loadingAnalise').classList.add('visivel');
-  document.getElementById('alerta-nova').classList.remove('visivel');
+  ocultarAlerta();
 
   try {
     const formData = new FormData();
-    formData.append('dataRecebimento', dataRecebimento);
-    formData.append('nomeAdvogado', nomeAdvogado);
-    formData.append('setorSolicitante', document.getElementById('setorSolicitante').value);
+    if (arquivoSelecionado) formData.append('arquivo', arquivoSelecionado);
+    else formData.append('textoManual', textoManual);
 
-    if (arquivoSelecionado) {
-      formData.append('arquivo', arquivoSelecionado);
-    } else {
-      formData.append('textoManual', textoManual);
-    }
-
-    const resp = await fetch('/api/analisar', {
-      method: 'POST',
-      body: formData
-    });
+    const resp = await fetch('/api/analisar', { method: 'POST', body: formData });
     const dados = await resp.json();
-
     if (!resp.ok) throw new Error(dados.erro || 'Erro na análise');
 
     analiseAtual = dados;
 
-    // Preenche painel de análise
+    // Preenche bloco IA
     document.getElementById('ai-notificante').textContent = dados.nomeNotificante || '—';
     document.getElementById('ai-cnpj').textContent = dados.cnpjNotificante || 'Não identificado';
-    document.getElementById('ai-tipo').innerHTML = `<span class="badge-tipo">${tiposLabel[dados.tipoNotificacao]?.icone || ''} ${tiposLabel[dados.tipoNotificacao]?.label || dados.tipoNotificacao}</span>`;
-    document.getElementById('ai-tema').textContent = dados.temaResumido || '—';
+    const tipoInfo = tiposLabel[dados.tipoNotificacao];
+    document.getElementById('ai-tipo').innerHTML = tipoInfo
+      ? `<span class="badge-tipo">${tipoInfo.icone} ${tipoInfo.label}</span>`
+      : dados.tipoNotificacao;
+    document.getElementById('ai-data-notif').textContent = dados.dataNotificacao ? formatarDataBR(dados.dataNotificacao) : 'Não identificada';
     document.getElementById('ai-resumo').textContent = dados.resumoNotificacao || '—';
     document.getElementById('ai-exigencias').textContent = dados.exigencias || '—';
-    document.getElementById('advogadoConfirma').value = nomeAdvogado;
-    document.getElementById('flowEtapa2').value = document.getElementById('flowEtapa1').value;
 
-    // Avança para etapa 2
+    // Autocompleta data de recebimento se a IA identificou
+    if (dados.dataNotificacao) {
+      document.getElementById('dataRecebimento').value = dados.dataNotificacao;
+    }
+
     document.getElementById('loadingAnalise').classList.remove('visivel');
     document.getElementById('etapa-2').classList.add('ativa');
     atualizarPassos(2);
@@ -1135,26 +511,25 @@ async function executarAnalise() {
   } catch (err) {
     document.getElementById('loadingAnalise').classList.remove('visivel');
     document.getElementById('etapa-1').classList.add('ativa');
-    mostrarAlerta('nova', 'erro', 'Erro ao analisar: ' + err.message);
+    mostrarAlerta('erro', 'Erro ao analisar: ' + err.message);
   }
 }
 
-// ── Voltar para etapa 1 ──
 function voltarEtapa1() {
   document.getElementById('etapa-2').classList.remove('ativa');
   document.getElementById('etapa-1').classList.add('ativa');
   atualizarPassos(1);
 }
 
-// ── Confirmar e gerar documento (Etapa 2 → 3) ──
+// ETAPA 2 → 3: confirma e gera
 async function confirmarEGerar() {
-  const numeroFlow = document.getElementById('flowEtapa2').value.trim();
-  const nomeAdvogado = document.getElementById('advogadoConfirma').value;
+  const nomeAdvogado = document.getElementById('advogadoForm').value;
+  const dataRecebimento = document.getElementById('dataRecebimento').value;
+  const numeroFlow = document.getElementById('numeroFlow').value.trim();
 
-  if (!numeroFlow) {
-    mostrarAlerta('nova', 'erro', 'O número do Flow é obrigatório para gerar o documento.');
-    return;
-  }
+  if (!nomeAdvogado) { mostrarAlerta('erro', 'Selecione o advogado responsável.'); return; }
+  if (!dataRecebimento) { mostrarAlerta('erro', 'Informe a data de recebimento.'); return; }
+  if (!numeroFlow) { mostrarAlerta('erro', 'O número do Flow é obrigatório.'); return; }
 
   document.getElementById('etapa-2').classList.remove('ativa');
   document.getElementById('loadingGeracao').classList.add('visivel');
@@ -1165,20 +540,15 @@ async function confirmarEGerar() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         analise: analiseAtual,
-        numeroFlow,
-        nomeAdvogado,
+        numeroFlow, nomeAdvogado,
         setorSolicitante: document.getElementById('setorSolicitante').value,
-        dataRecebimento: document.getElementById('dataRecebimento').value
+        dataRecebimento
       })
     });
     const dados = await resp.json();
-
     if (!resp.ok) throw new Error(dados.erro || 'Erro ao gerar');
 
-    registroAtualId = dados.id;
     arquivoAtualNome = dados.nomeArquivo;
-
-    // Exibe minuta
     document.getElementById('conteudoMinuta').textContent = dados.textoMinuta;
     document.getElementById('loadingGeracao').classList.remove('visivel');
     document.getElementById('etapa-3').classList.add('ativa');
@@ -1187,92 +557,150 @@ async function confirmarEGerar() {
   } catch (err) {
     document.getElementById('loadingGeracao').classList.remove('visivel');
     document.getElementById('etapa-2').classList.add('ativa');
-    mostrarAlerta('nova', 'erro', 'Erro ao gerar documento: ' + err.message);
+    mostrarAlerta('erro', 'Erro ao gerar documento: ' + err.message);
   }
 }
 
-// ── Download do documento ──
 function baixarDocumento() {
-  if (arquivoAtualNome) {
-    window.location.href = '/api/download/' + encodeURIComponent(arquivoAtualNome);
-  }
+  if (arquivoAtualNome) window.location.href = '/api/download/' + encodeURIComponent(arquivoAtualNome);
 }
 
-function downloadDireto(nomeEncoded) {
-  window.location.href = '/api/download/' + nomeEncoded;
-}
-
-// ── Nova notificação (reset) ──
 function novaNotificacao() {
-  analiseAtual = null;
-  registroAtualId = null;
-  arquivoAtualNome = null;
-  arquivoSelecionado = null;
-
+  analiseAtual = null; arquivoAtualNome = null; arquivoSelecionado = null;
   document.querySelectorAll('.etapa').forEach(e => e.classList.remove('ativa'));
   document.getElementById('etapa-1').classList.add('ativa');
   document.getElementById('loadingAnalise').classList.remove('visivel');
   document.getElementById('loadingGeracao').classList.remove('visivel');
-
-  // Reset form
   document.getElementById('textoManual').value = '';
-  document.getElementById('flowEtapa1').value = '';
-  document.getElementById('dataRecebimento').value = new Date().toISOString().split('T')[0];
+  document.getElementById('numeroFlow').value = '';
   document.getElementById('setorSolicitante').value = '';
+  document.getElementById('dataRecebimento').value = new Date().toISOString().split('T')[0];
   removerArquivo();
   atualizarPassos(1);
-
-  mostrarTela('nova', document.querySelectorAll('.nav-btn')[1]);
+  mostrarTela('nova', document.querySelectorAll('.nav-btn')[0]);
 }
 
-// ── Atualizar status ──
+// Dashboard
+async function carregarDashboard() {
+  const resp = await fetch('/api/registros');
+  todosRegistros = await resp.json();
+
+  const total = todosRegistros.length;
+  const verdes = todosRegistros.filter(r => r.semaforo === 'verde').length;
+  const amarelos = todosRegistros.filter(r => r.semaforo === 'amarelo').length;
+  const vermelhos = todosRegistros.filter(r => ['vermelho','vencido'].includes(r.semaforo)).length;
+
+  document.getElementById('metricas').innerHTML = `
+    <div class="metrica-card"><div class="valor">${total}</div><div class="label">Total de Notificações</div></div>
+    <div class="metrica-card verde"><div class="valor">${verdes}</div><div class="label">✅ Dentro do Prazo</div></div>
+    <div class="metrica-card amarelo"><div class="valor">${amarelos}</div><div class="label">⚠️ Atenção (≤7 dias)</div></div>
+    <div class="metrica-card vermelho"><div class="valor">${vermelhos}</div><div class="label">🔴 Urgente / Vencido</div></div>
+  `;
+
+  const contTipos = {};
+  todosRegistros.forEach(r => { contTipos[r.tipoNotificacao] = (contTipos[r.tipoNotificacao] || 0) + 1; });
+  document.getElementById('tiposMap').innerHTML = Object.entries(tiposLabel).map(([k,v]) => `
+    <div class="tipo-card">
+      <div class="tipo-icone">${v.icone}</div>
+      <div class="tipo-nome">${v.label}</div>
+      <div class="tipo-count">${contTipos[k] || 0}</div>
+    </div>`).join('') || '<p style="color:#8a96a3;font-size:13px;">Nenhum registro ainda.</p>';
+
+  const urgentes = todosRegistros.filter(r => ['amarelo','vermelho','vencido'].includes(r.semaforo)).slice(0,5);
+  document.getElementById('alertasVencimento').innerHTML = urgentes.length === 0
+    ? '<p style="color:#15803d;font-size:13px;padding:8px 0;">✅ Nenhuma notificação com prazo crítico.</p>'
+    : urgentes.map(r => `
+      <div style="padding:10px 0;border-bottom:1px solid #f0f2f5;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <p style="font-weight:600;font-size:13px;">${r.nomeNotificante}</p>
+          <p style="font-size:12px;color:#8a96a3;">Vence: ${formatarDataBR(r.dataVencimento)} · ${r.nomeAdvogado}</p>
+        </div>
+        <span class="semaforo ${r.semaforo}">${diasRestantes(r.dataVencimento)}</span>
+      </div>`).join('');
+
+  renderizarTabela(todosRegistros.slice(0,8), 'tabelaRecentes');
+}
+
+async function carregarHistorico() {
+  const resp = await fetch('/api/registros');
+  todosRegistros = await resp.json();
+  renderizarTabela(todosRegistros, 'tabelaHistorico');
+}
+
+function filtrarHistorico() {
+  const busca = document.getElementById('buscaHistorico').value.toLowerCase();
+  const tipo = document.getElementById('filtroTipo').value;
+  renderizarTabela(todosRegistros.filter(r => {
+    const mb = !busca || [r.nomeNotificante, r.nomeAdvogado, r.temaResumido, r.numeroFlow||''].some(v => v.toLowerCase().includes(busca));
+    return mb && (!tipo || r.tipoNotificacao === tipo);
+  }), 'tabelaHistorico');
+}
+
+function renderizarTabela(registros, containerId) {
+  const c = document.getElementById(containerId);
+  if (!registros.length) { c.innerHTML = '<p style="padding:32px;text-align:center;color:#8a96a3;font-size:14px;">Nenhum registro encontrado.</p>'; return; }
+  const isAdmin = advogadoAtual === 'Vinícius';
+  c.innerHTML = `<table>
+    <thead><tr>
+      <th>Notificante</th><th>Tipo</th><th>Advogado</th><th>Flow</th>
+      <th>Vencimento</th><th>Prazo</th><th>Status</th><th>Ações</th>
+    </tr></thead>
+    <tbody>${registros.map(r => `
+      <tr>
+        <td><div style="font-weight:600;font-size:13px;">${r.nomeNotificante}</div><div style="font-size:11px;color:#8a96a3;">${r.cnpjNotificante||''}</div></td>
+        <td><span class="badge-tipo">${tiposLabel[r.tipoNotificacao]?.icone||''} ${tiposLabel[r.tipoNotificacao]?.label||r.tipoNotificacao}</span></td>
+        <td style="font-size:13px;">${r.nomeAdvogado}</td>
+        <td style="font-size:13px;font-family:monospace;">${r.numeroFlow||'—'}</td>
+        <td style="font-size:13px;">${formatarDataBR(r.dataVencimento)}</td>
+        <td><span class="semaforo ${r.semaforo}">${diasRestantes(r.dataVencimento)}</span></td>
+        <td>
+          <select onchange="atualizarStatus('${r.id}',this.value)" style="font-size:11px;padding:4px 6px;border-radius:4px;border:1px solid #e0e6ed;">
+            <option value="minuta_gerada" ${r.status==='minuta_gerada'?'selected':''}>Minuta Gerada</option>
+            <option value="em_revisao" ${r.status==='em_revisao'?'selected':''}>Em Revisão</option>
+            <option value="enviada" ${r.status==='enviada'?'selected':''}>Enviada</option>
+            <option value="concluida" ${r.status==='concluida'?'selected':''}>Concluída</option>
+          </select>
+        </td>
+        <td>
+          ${r.arquivoGerado?`<button class="btn-icon" onclick="downloadDireto('${encodeURIComponent(r.arquivoGerado)}')" title="Baixar">⬇️</button>`:''}
+          ${isAdmin?`<button class="btn-icon" onclick="deletarRegistro('${r.id}')" title="Excluir">🗑️</button>`:''}
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
 async function atualizarStatus(id, status) {
-  await fetch('/api/atualizar-status', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, status })
-  });
+  await fetch('/api/atualizar-status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,status}) });
 }
 
-// ── Deletar registro ──
 async function deletarRegistro(id) {
-  if (!confirm('Confirma a exclusão permanente deste registro?')) return;
-  await fetch('/api/deletar', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, email: 'vinicius.sousa@sankhya.com.br' })
-  });
-  carregarHistorico();
-  carregarDashboard();
+  if (!confirm('Confirma a exclusão permanente?')) return;
+  await fetch('/api/deletar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, email:'vinicius.sousa@sankhya.com.br'}) });
+  carregarHistorico(); carregarDashboard();
 }
 
-// ── Utilitários ──
+function downloadDireto(n) { window.location.href = '/api/download/' + n; }
+
 function atualizarPassos(ativo) {
   for (let i = 1; i <= 3; i++) {
-    const el = document.getElementById('passo-' + i);
-    el.classList.remove('ativo', 'concluido');
+    const el = document.getElementById('passo-'+i);
+    el.classList.remove('ativo','concluido');
     if (i < ativo) el.classList.add('concluido');
     else if (i === ativo) el.classList.add('ativo');
   }
 }
 
-function mostrarAlerta(tela, tipo, msg) {
-  const el = document.getElementById('alerta-' + tela);
+function mostrarAlerta(tipo, msg) {
+  const el = document.getElementById('alerta-nova');
   el.className = 'alerta ' + tipo + ' visivel';
   el.textContent = msg;
-  setTimeout(() => el.classList.remove('visivel'), 6000);
+  setTimeout(() => el.classList.remove('visivel'), 7000);
 }
+function ocultarAlerta() { document.getElementById('alerta-nova').classList.remove('visivel'); }
 
-function formatarDataBR(dataStr) {
-  if (!dataStr) return '—';
-  const [y, m, d] = dataStr.split('-');
-  return `${d}/${m}/${y}`;
-}
-
-function diasRestantes(dataVencimento) {
-  const hoje = new Date();
-  const venc = new Date(dataVencimento + 'T12:00:00');
-  const diff = Math.ceil((venc - hoje) / (1000 * 60 * 60 * 24));
+function formatarDataBR(s) { if (!s) return '—'; const [y,m,d] = s.split('-'); return `${d}/${m}/${y}`; }
+function diasRestantes(v) {
+  const diff = Math.ceil((new Date(v+'T12:00:00') - new Date()) / 86400000);
   if (diff < 0) return `Venceu há ${Math.abs(diff)}d`;
   if (diff === 0) return 'Vence hoje';
   return `${diff} dias`;
