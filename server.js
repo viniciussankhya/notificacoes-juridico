@@ -168,15 +168,11 @@ IMPORTANTE: Retorne APENAS um objeto JSON válido e completo. Todos os campos de
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 2000,
-    messages: [
-      { role: 'user', content: prompt },
-      { role: 'assistant', content: '{' } // prefill para forçar JSON válido
-    ],
+    messages: [{ role: 'user', content: prompt }],
   });
 
-  // Reconstrói o JSON com o prefill + resposta
-  let texto = '{' + response.content[0].text.trim();
-  texto = texto.replace(/```json|```/g, '').trim();
+  // Extrai e limpa o JSON da resposta
+  let texto = response.content[0].text.trim().replace(/```json|```/g, '').trim();
 
   // Garante fechamento do JSON caso tenha sido truncado
   if (!texto.endsWith('}')) {
