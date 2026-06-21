@@ -62,7 +62,8 @@ function parseMultipart(req) {
   return new Promise((resolve, reject) => {
     const fields = {};
     let file = null;
-    const bb = Busboy({ headers: req.headers });
+    const extraFiles = []; // subsídios
+    const bb = Busboy({ headers: req.headers, limits: { fileSize: 20 * 1024 * 1024 } });
 
     bb.on('field', (name, val) => { fields[name] = val; });
 
@@ -71,16 +72,16 @@ function parseMultipart(req) {
       const chunks = [];
       stream.on('data', c => chunks.push(c));
       stream.on('end', () => {
-        file = {
-          fieldname: name,
-          originalname: filename,
-          buffer: Buffer.concat(chunks),
-          mimetype: mimeType
-        };
+        const buf = Buffer.concat(chunks);
+        if (name === 'arquivo') {
+          file = { fieldname: name, originalname: filename, buffer: buf, mimetype: mimeType };
+        } else if (name.startsWith('subsidio_')) {
+          extraFiles.push({ fieldname: name, originalname: filename, buffer: buf, mimetype: mimeType });
+        }
       });
     });
 
-    bb.on('close', () => resolve({ fields, file }));
+    bb.on('close', () => resolve({ fields, file, extraFiles }));
     bb.on('error', reject);
     req.pipe(bb);
   });
@@ -103,15 +104,21 @@ function extrairTextoArquivo(filePath, originalname) {
 }
 
 // ── IA: Analisa notificação e extrai TODOS os dados ──
-async function analisarNotificacao(textoNotificacao) {
+async function analisarNotificacao(textoNotificacao, textosSubsidios = []) {
   const Anthropic = require('@anthropic-ai/sdk');
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+  const blocoSubsidios = textosSubsidios.length > 0
+    ? `\n\nSUBSÍDIOS ENVIADOS PELA UNIDADE (documentos de contexto):\n${textosSubsidios.join('\n\n')}`
+    : '';
+
   const prompt = `Você é um assistente jurídico especializado da Sankhya S.A., empresa de software ERP.
 Analise a notificação extrajudicial abaixo e extraia as informações em JSON.
+${blocoSubsidios ? 'Use também os subsídios enviados para enriquecer sua análise dos pontos críticos.' : ''}
 
 NOTIFICAÇÃO:
 ${textoNotificacao}
+${blocoSubsidios}
 
 Retorne APENAS um objeto JSON válido, sem markdown, sem explicações, com esta estrutura exata:
 {
@@ -122,7 +129,7 @@ Retorne APENAS um objeto JSON válido, sem markdown, sem explicações, com esta
   "temaResumido": "tema em até 10 palavras",
   "resumoNotificacao": "resumo dos fatos e exigências em 3 a 5 frases",
   "exigencias": "o que o notificante está pedindo/exigindo",
-  "pontosCriticos": "principais argumentos que precisam ser refutados ou tratados na resposta",
+  "pontosCriticos": "principais argumentos que precisam ser refutados ou tratados na resposta, levando em conta os subsídios fornecidos",
   "dataNotificacao": "data da notificação no formato YYYY-MM-DD ou vazio se não encontrada",
   "numeroContrato": "número do contrato ou proposta comercial se mencionado, ou vazio"
 }`;
@@ -151,6 +158,10 @@ async function gerarMinutaResposta(dadosAnalise, dataResposta, numeroFlow, nomeA
     OUTRO: 'tema diverso'
   };
 
+  const blocoSubsidios = dadosAnalise.subsidiosTexto
+    ? `\n\nSUBSÍDIOS DISPONÍVEIS (documentos enviados pela unidade como evidências):\n${dadosAnalise.subsidiosTexto.slice(0, 8000)}\n\nUse os subsídios acima para fundamentar a resposta com fatos concretos, datas, números de OS, e-mails, cronogramas e demais evidências. Cite-os de forma objetiva nos "Dos Fatos".`
+    : '';
+
   const prompt = `Você é advogado sênior da Sankhya S.A. e precisa redigir uma resposta formal à notificação extrajudicial descrita abaixo.
 
 DADOS DA NOTIFICAÇÃO:
@@ -168,6 +179,7 @@ DADOS DA RESPOSTA:
 - Flow: ${numeroFlow}
 - Advogado: ${nomeAdvogado}
 - Setor solicitante: ${setorSolicitante}
+${blocoSubsidios}
 
 INSTRUÇÕES:
 1. Português jurídico formal, claro e objetivo
@@ -177,18 +189,19 @@ INSTRUÇÕES:
    - Identificação do Notificante com seus dados
    - Referência ao tema
    - "1. Resumo da Notificação" — síntese do que o notificante alega
-   - "2. Dos Fatos" — resposta detalhada e fundamentada
+   - "2. Dos Fatos" — resposta detalhada, fundamentada com evidências dos subsídios quando disponíveis
    - "Considerações Finais e Proposta de Solução" — encaminhamento construtivo
    - Fechamento: Uberlândia/MG, data e SANKHYA S.A.
 3. Tom: firme na defesa, respeitoso, sempre com proposta de solução
 4. Nunca admite falha sem contextualizar com fatos favoráveis
-5. Sempre encerra com disposição para resolução amigável
+5. Quando houver subsídios, use fatos concretos (datas, nomes, números de OS) para embasar os argumentos
+6. Sempre encerra com disposição para resolução amigável
 
 Retorne APENAS o texto da resposta. Use **negrito** para títulos e nomes das partes.`;
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 3000,
+    max_tokens: 4000,
     messages: [{ role: 'user', content: prompt }],
   });
 
@@ -269,6 +282,42 @@ const server = http.createServer(async (req, res) => {
     ]));
   }
 
+  // API: todos os usuários com perfil (juridico ou unidade)
+  if (method === 'GET' && pathname === '/api/usuarios') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({
+      // Lista fixa e fechada — apenas esses nomes têm acesso ao perfil Jurídico
+      juridico: [
+        { nome: 'Ana Clara',   email: 'ana.oliveira@sankhya.com.br',      cargo: 'Advogada' },
+        { nome: 'Bernardo',    email: 'bernardo.barachisio@sankhya.com.br', cargo: 'Gerente Jurídico' },
+        { nome: 'Diogo',       email: 'diogo.oliveira@sankhya.com.br',    cargo: 'Supervisor Jurídico' },
+        { nome: 'Luis Marimon',email: 'luis.marimon@sankhya.com.br',      cargo: 'Diretor Jurídico' },
+        { nome: 'Luiza Delben',email: 'luiza.delben@sankhya.com.br',      cargo: 'Advogada' },
+        { nome: 'Luiza Calabria', email: 'luiza.calabria@sankhya.com.br', cargo: 'Advogada' },
+        { nome: 'Monique',     email: 'monique.silva@sankhya.com.br',     cargo: 'Advogada' },
+        { nome: 'Vinícius',    email: 'vinicius.sousa@sankhya.com.br',    cargo: 'Gerente Jurídico' },
+        { nome: 'Giulia',      email: 'giulia.catharina@sankhya.com.br',  cargo: 'Estagiária' },
+        { nome: 'João Pesciotto', email: 'joao.pesciotto@ploomes.com',    cargo: 'Estagiário' },
+      ],
+      unidades: [
+        'BP Recife','BP São Paulo','BP Rio de Janeiro','BP Belo Horizonte',
+        'BP Curitiba','BP Porto Alegre','BP Fortaleza','BP Salvador',
+        'BP Brasília','BP Manaus','BP Goiânia','BP Campinas',
+        'Recepção / Triagem'
+      ]
+    }));
+  }
+
+  // API: registros filtrados por unidade (para tela de acompanhamento)
+  if (method === 'GET' && pathname.startsWith('/api/registros/unidade/')) {
+    const unidade = decodeURIComponent(pathname.split('/api/registros/unidade/')[1]);
+    const regs = lerRegistros()
+      .filter(r => r.setorSolicitante === unidade)
+      .map(r => ({ ...r, semaforo: calcularSemaforo(r.dataVencimento) }));
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify(regs));
+  }
+
   // API: registros
   if (method === 'GET' && pathname === '/api/registros') {
     const regs = lerRegistros().map(r => ({ ...r, semaforo: calcularSemaforo(r.dataVencimento) }));
@@ -326,10 +375,10 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // API: ANALISAR — upload + IA extrai tudo
+  // API: ANALISAR — upload + subsídios + IA extrai tudo
   if (method === 'POST' && pathname === '/api/analisar') {
     try {
-      const { fields, file } = await parseMultipart(req);
+      const { fields, file, extraFiles } = await parseMultipart(req);
 
       let textoNotificacao = '';
 
@@ -349,8 +398,24 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ erro: 'Não foi possível extrair o texto da notificação. Verifique o arquivo ou cole o texto manualmente.' }));
       }
 
-      const analise = await analisarNotificacao(textoNotificacao);
+      // Extrai texto dos subsídios
+      const textosSubsidios = [];
+      for (const sub of (extraFiles || [])) {
+        if (sub.buffer && sub.buffer.length > 0) {
+          const tmpPath = path.join(UPLOADS_DIR, `tmp_sub_${Date.now()}_${Math.random().toString(36).slice(2)}${path.extname(sub.originalname)}`);
+          fs.writeFileSync(tmpPath, sub.buffer);
+          const texto = extrairTextoArquivo(tmpPath, sub.originalname);
+          try { fs.unlinkSync(tmpPath); } catch {}
+          if (texto && texto.trim().length > 20) {
+            // Limita cada subsídio a 3000 chars para não estourar contexto
+            textosSubsidios.push(`--- Subsídio: ${sub.originalname} ---\n${texto.slice(0, 3000)}`);
+          }
+        }
+      }
+
+      const analise = await analisarNotificacao(textoNotificacao, textosSubsidios);
       analise.textoCompleto = textoNotificacao;
+      analise.subsidiosTexto = textosSubsidios.join('\n\n');
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify(analise));

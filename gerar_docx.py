@@ -172,35 +172,35 @@ def gerar_docx(texto_minuta, caminho_template, caminho_saida):
     1. Copia o template (preserva cabeçalho, rodapé, imagens)
     2. Substitui apenas o body com o texto da minuta formatado
     """
-    # Copia o template para o arquivo de saída
     shutil.copy2(caminho_template, caminho_saida)
 
-    # Lê o ZIP (docx é um ZIP)
     with zipfile.ZipFile(caminho_saida, 'r') as z:
         conteudo_original = z.read('word/document.xml').decode('utf-8')
         todos_arquivos = {name: z.read(name) for name in z.namelist()}
 
-    # Extrai o sectPr (configurações de página, margens, cabeçalho/rodapé)
-    match_sect = re.search(r'<w:sectPr>.*?</w:sectPr>', conteudo_original, re.DOTALL)
+    # Extrai o sectPr original (margens, cabeçalho, rodapé)
+    match_sect = re.search(r'<w:sectPr\b.*?</w:sectPr>', conteudo_original, re.DOTALL)
     sect_pr = match_sect.group(0) if match_sect else ''
 
-    # Gera os novos parágrafos a partir do texto da minuta
+    # Extrai tag de abertura do <w:document> com todos os namespaces
+    match_doc = re.search(r'(<w:document\b[^>]*>)', conteudo_original)
+    abertura_doc = match_doc.group(1) if match_doc else '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">'
+
+    # Gera novos parágrafos
     novos_paragrafos = texto_para_paragrafos_xml(texto_minuta)
 
-    # Reconstrói o document.xml com os novos parágrafos + sectPr original
-    # Preserva todos os namespaces do documento original
-    match_abertura = re.match(r'(<\?xml[^>]*\?>\s*)?(<w:document[^>]*>)', conteudo_original)
-    abertura_doc = match_abertura.group(0) if match_abertura else '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+    # Monta document.xml — UMA ÚNICA declaração XML no início
+    novo_document_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        + abertura_doc + '\n'
+        + '  <w:background w:color="FFFFFF"/>\n'
+        + '  <w:body>\n'
+        + novos_paragrafos + '\n'
+        + '    ' + sect_pr + '\n'
+        + '  </w:body>\n'
+        + '</w:document>'
+    )
 
-    novo_document_xml = f'''<?xml version="1.0" encoding="UTF-8"?>{abertura_doc}
-  <w:background w:color="FFFFFF"/>
-  <w:body>
-{novos_paragrafos}
-    {sect_pr}
-  </w:body>
-</w:document>'''
-
-    # Reescreve o ZIP com o novo document.xml
     todos_arquivos['word/document.xml'] = novo_document_xml.encode('utf-8')
 
     with zipfile.ZipFile(caminho_saida, 'w', zipfile.ZIP_DEFLATED) as z:

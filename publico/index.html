@@ -180,13 +180,68 @@
 
     .acoes { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
 
+    /* Editor rico */
+    .editor-toolbar {
+      display: flex; gap: 4px; padding: 8px 12px;
+      background: #f8f9fb; border: 1.5px solid #e0e6ed;
+      border-bottom: none; border-radius: 8px 8px 0 0;
+      flex-wrap: wrap; align-items: center;
+    }
+    .toolbar-btn {
+      padding: 5px 10px; border: 1px solid #e0e6ed; border-radius: 5px;
+      background: white; cursor: pointer; font-size: 13px; font-weight: 600;
+      color: #4a5568; transition: all 0.15s; line-height: 1;
+    }
+    .toolbar-btn:hover { background: #e8f8e8; border-color: #66CC66; color: #15803d; }
+    .toolbar-btn.ativo { background: #66CC66; border-color: #66CC66; color: white; }
+    .toolbar-sep { width: 1px; height: 20px; background: #e0e6ed; margin: 0 4px; }
+    .toolbar-label { font-size: 11px; color: #8a96a3; font-weight: 500; margin-right: 4px; }
+    .editor-content {
+      min-height: 420px; max-height: 560px; overflow-y: auto;
+      padding: 20px 24px; border: 1.5px solid #e0e6ed; border-radius: 0 0 8px 8px;
+      background: white; font-family: 'Arial', sans-serif; font-size: 13px;
+      line-height: 1.8; color: #2E3C50; outline: none;
+      white-space: pre-wrap;
+    }
+    .editor-content:focus { border-color: #66CC66; }
+    .editor-info { font-size: 12px; color: #8a96a3; margin-top: 8px; text-align: right; }
+
     .tipos-map { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .tipo-card { padding: 14px; border: 1.5px solid #e0e6ed; border-radius: 8px; background: #fafbfc; }
     .tipo-card .tipo-icone { font-size: 20px; margin-bottom: 4px; }
     .tipo-card .tipo-nome { font-weight: 600; color: #2E3C50; font-size: 12px; }
     .tipo-card .tipo-count { font-size: 22px; font-weight: 700; color: #66CC66; }
 
-    .footer { text-align: center; padding: 24px; font-size: 12px; color: #a0b0c0; }
+    /* Subsídios — múltiplos arquivos */
+    .subsidios-disclaimer {
+      background: #fffbeb; border: 1.5px solid #f59e0b;
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;
+      font-size: 13px; color: #78350f; line-height: 1.6;
+    }
+    .subsidios-disclaimer strong { color: #92400e; }
+    .subsidios-lista {
+      display: flex; flex-direction: column; gap: 6px; margin-top: 10px;
+    }
+    .subsidio-item {
+      display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+      background: #e8f8e8; border-radius: 6px; font-size: 13px; color: #15803d;
+    }
+    .subsidio-item .nome { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .subsidio-item .remover {
+      background: none; border: none; cursor: pointer;
+      color: #ef4444; font-size: 15px; padding: 0 4px; flex-shrink: 0;
+    }
+    .subsidio-item .remover:hover { color: #b91c1c; }
+    .adicionar-subsidio {
+      display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+      border: 2px dashed #c8d5e0; border-radius: 8px; cursor: pointer;
+      font-size: 13px; color: #6b7a8d; transition: all 0.2s; background: #fafbfc;
+      margin-top: 6px;
+    }
+    .adicionar-subsidio:hover { border-color: #66CC66; color: #15803d; background: #f0faf0; }
+    .subsidios-contador {
+      font-size: 12px; color: #8a96a3; margin-top: 6px; text-align: right;
+    }
 
     @media (max-width: 768px) {
       .metricas { grid-template-columns: repeat(2, 1fr); }
@@ -205,18 +260,46 @@
       <div class="logo-sub">Central de Notificações Extrajudiciais</div>
     </div>
   </div>
-  <div class="header-user">
-    <select id="selectAdvogado" onchange="setAdvogado(this.value)">
+  <div class="header-user" style="display:flex; gap:10px; align-items:center;">
+    <select id="selectPerfil" onchange="selecionarPerfil(this.value)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;padding:6px 12px;border-radius:6px;font-family:'Roboto',sans-serif;font-size:13px;cursor:pointer;">
+      <option value="">Sou do time...</option>
+      <option value="juridico">⚖️ Jurídico</option>
+      <option value="unidade">🏢 Unidade / Recepção</option>
+    </select>
+    <select id="selectNome" onchange="setUsuario(this.value)" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;padding:6px 12px;border-radius:6px;font-family:'Roboto',sans-serif;font-size:13px;cursor:pointer;display:none;">
       <option value="">Selecione seu nome</option>
     </select>
   </div>
 </div>
 
-<!-- Nav: Nova Notificação primeiro, Dashboard segundo -->
-<div class="nav">
+<!-- Modal de verificação de e-mail -->
+<div id="modalVerificacao" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <div style="font-family:'Work Sans',sans-serif;font-size:18px;font-weight:700;color:#2E3C50;margin-bottom:8px;">⚖️ Acesso ao Perfil Jurídico</div>
+    <p style="font-size:13px;color:#6b7a8d;margin-bottom:20px;line-height:1.6;">Confirme seu e-mail corporativo para acessar o perfil do Departamento Jurídico.</p>
+    <input type="email" id="inputEmailVerificacao"
+      placeholder="seu.email@sankhya.com.br"
+      style="width:100%;padding:10px 12px;border:1.5px solid #e0e6ed;border-radius:8px;font-size:14px;margin-bottom:8px;"
+      onkeydown="if(event.key==='Enter') confirmarEmail()">
+    <div id="erroEmail" style="color:#ef4444;font-size:12px;margin-bottom:12px;display:none;">E-mail não encontrado na lista do Departamento Jurídico.</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="cancelarVerificacao()" style="padding:8px 16px;border-radius:8px;border:1.5px solid #e0e6ed;background:white;cursor:pointer;font-size:13px;color:#6b7a8d;">Cancelar</button>
+      <button onclick="confirmarEmail()" style="padding:8px 20px;border-radius:8px;border:none;background:#66CC66;color:white;font-weight:600;cursor:pointer;font-size:13px;">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Nav jurídico (padrão) -->
+<div class="nav" id="nav-juridico" style="display:none;">
   <button class="nav-btn ativo" onclick="mostrarTela('nova', this)">➕ Nova Notificação</button>
   <button class="nav-btn" onclick="mostrarTela('dashboard', this)">📊 Dashboard</button>
   <button class="nav-btn" onclick="mostrarTela('historico', this)">📋 Histórico</button>
+</div>
+
+<!-- Nav unidade -->
+<div class="nav" id="nav-unidade" style="display:none;">
+  <button class="nav-btn ativo" onclick="mostrarTela('nova', this)">📤 Enviar Notificação</button>
+  <button class="nav-btn" onclick="mostrarTela('acompanhamento', this)">📋 Meus Envios</button>
 </div>
 
 <div class="main">
@@ -261,8 +344,37 @@
         <textarea id="textoManual" placeholder="Cole aqui o texto completo da notificação recebida..."></textarea>
       </div>
 
+      <!-- Campo de subsídios -->
+      <div style="margin-bottom: 20px;">
+        <label class="required" style="display:block; margin-bottom: 8px;">
+          📎 Subsídios para Elaboração da Resposta
+        </label>
+
+        <div class="subsidios-disclaimer">
+          <strong>⚠️ Atenção — campo obrigatório:</strong> Para que possamos elaborar nossa resposta,
+          favor enviar uma linha do tempo trazendo os principais fatos ocorridos ao longo do projeto,
+          especialmente os que foram impeditivos à entrega, com respectivas evidências.
+          <br><br>
+          Envie aqui todos os documentos relevantes: contratos, e-mails, histórico de OS,
+          cronogramas, atas de reunião, prints de sistema, propostas comerciais. Aceita PDF e Word,
+          sem limite de arquivos.
+        </div>
+
+        <!-- Lista de arquivos já adicionados -->
+        <div class="subsidios-lista" id="subsidiosLista"></div>
+
+        <!-- Botão adicionar mais -->
+        <div class="adicionar-subsidio" onclick="document.getElementById('subsidiosInput').click()">
+          <span>➕</span>
+          <span id="subsidiosTextoBtn">Adicionar arquivos de subsídio (PDF ou Word)</span>
+        </div>
+        <input type="file" id="subsidiosInput" accept=".pdf,.docx,.doc"
+               multiple style="display:none" onchange="adicionarSubsidios(event)">
+        <div class="subsidios-contador" id="subsidiosContador"></div>
+      </div>
+
       <div style="display: flex; justify-content: flex-end;">
-        <button class="btn btn-primary" onclick="executarAnalise()">🔍 Analisar com IA →</button>
+        <button class="btn btn-primary" id="btnEnviar" onclick="executarAnalise()">🔍 Analisar com IA →</button>
       </div>
     </div>
 
@@ -335,24 +447,62 @@
       </div>
     </div>
 
+    <!-- ETAPA 3 unidade: confirmação de envio -->
+    <div class="form-card etapa" id="etapa-3-unidade">
+      <div style="text-align:center; padding: 20px 0;">
+        <div style="font-size:56px; margin-bottom:16px;">✅</div>
+        <div style="font-family:'Work Sans',sans-serif;font-size:22px;font-weight:700;color:#15803d;margin-bottom:10px;">
+          Notificação enviada ao Jurídico!
+        </div>
+        <p style="font-size:14px;color:#6b7a8d;max-width:480px;margin:0 auto 24px;">
+          Nossa equipe recebeu o material e iniciará a elaboração da resposta.
+          Você pode acompanhar o andamento na aba <strong>Meus Envios</strong>.
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="irParaAcompanhamento()">📋 Ver Meus Envios</button>
+          <button class="btn btn-secondary" onclick="novaNotificacao()">📤 Enviar Outra Notificação</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Loading geração -->
     <div class="loading" id="loadingGeracao">
       <div class="spinner"></div>
       <span>Gerando a minuta de resposta...</span>
     </div>
 
-    <!-- ETAPA 3: Minuta gerada -->
+    <!-- ETAPA 3: Editor de minuta -->
     <div class="form-card etapa" id="etapa-3">
-      <div class="form-titulo" style="color: #15803d;">✅ Minuta Gerada com Sucesso!</div>
-      <div class="alerta sucesso visivel">Revise o documento abaixo antes de enviar ao notificante.</div>
-      <div class="minuta-content" id="conteudoMinuta"></div>
+      <div class="form-titulo" style="color: #15803d;">✅ Minuta Gerada — Revise e Edite antes de Baixar</div>
+
+      <!-- Toolbar do editor -->
+      <div class="editor-toolbar">
+        <span class="toolbar-label">Formatação:</span>
+        <button class="toolbar-btn" onclick="fmt('bold')" title="Negrito"><b>N</b></button>
+        <button class="toolbar-btn" onclick="fmt('italic')" title="Itálico"><i>I</i></button>
+        <button class="toolbar-btn" onclick="fmt('underline')" title="Sublinhado"><u>S</u></button>
+        <div class="toolbar-sep"></div>
+        <span class="toolbar-label">Alinhamento:</span>
+        <button class="toolbar-btn" onclick="fmt('justifyLeft')" title="Esquerda">⬅</button>
+        <button class="toolbar-btn" onclick="fmt('justifyFull')" title="Justificado">☰</button>
+        <button class="toolbar-btn" onclick="fmt('justifyCenter')" title="Centro">≡</button>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" onclick="desfazer()" title="Desfazer última edição">↩ Desfazer</button>
+        <button class="toolbar-btn" onclick="restaurarOriginal()" title="Voltar ao texto original da IA" style="margin-left:auto;">🔄 Restaurar Original</button>
+      </div>
+
+      <!-- Editor editável -->
+      <div class="editor-content" id="editorMinuta" contenteditable="true" spellcheck="true"></div>
+      <div class="editor-info" id="editorInfo"></div>
+
       <div class="acoes">
-        <button class="btn btn-primary" onclick="baixarDocumento()">⬇️ Baixar Word (.docx)</button>
+        <button class="btn btn-primary" onclick="baixarDocumentoEditado()">⬇️ Baixar Word com Edições</button>
         <button class="btn btn-secondary" onclick="novaNotificacao()">+ Nova Notificação</button>
         <button class="btn btn-secondary" onclick="mostrarTela('historico', document.querySelectorAll('.nav-btn')[2])">📋 Ver Histórico</button>
       </div>
+
       <div class="alerta info visivel" style="margin-top: 16px;">
-        💡 <strong>Atenção:</strong> A IA gera um rascunho de alta qualidade baseado nos seus documentos reais. A validação jurídica final é sempre responsabilidade do advogado responsável.
+        💡 Edite livremente o texto acima. O Word será gerado com exatamente o que estiver no editor no momento do download.
       </div>
     </div>
 
@@ -397,6 +547,21 @@
     <div class="card" id="tabelaHistorico"></div>
   </div>
 
+  <!-- ═══════════════ ACOMPANHAMENTO (unidades) ═══════════════ -->
+  <div id="tela-acompanhamento" class="tela">
+    <div style="margin-bottom:20px;">
+      <h2 style="font-family:'Work Sans',sans-serif;font-size:18px;font-weight:700;color:#2E3C50;margin-bottom:6px;">📋 Seus Envios ao Jurídico</h2>
+      <p style="font-size:13px;color:#8a96a3;">Acompanhe o status de todas as notificações enviadas pela sua unidade.</p>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#4a5568;"><span style="width:10px;height:10px;border-radius:50%;background:#c8d5e0;display:inline-block;"></span> Recebido pelo Jurídico</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#4a5568;"><span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Em Revisão</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#4a5568;"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> Resposta Enviada</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#4a5568;"><span style="width:10px;height:10px;border-radius:50%;background:#66CC66;display:inline-block;"></span> Concluído</div>
+    </div>
+    <div class="card" id="tabelaAcompanhamento"></div>
+  </div>
+
 </div>
 
 <div class="footer">Sankhya Legal — Módulo 3: Central de Notificações Extrajudiciais · Departamento Jurídico</div>
@@ -416,33 +581,130 @@ let analiseAtual = null;
 let arquivoAtualNome = null;
 let arquivoSelecionado = null;
 let todosRegistros = [];
+let textoOriginalIA = '';
+let subsidios = [];
+let perfilAtual = ''; // 'juridico' ou 'unidade'
+let nomeAtual = '';
+let todosUsuarios = { juridico: [], unidades: [] };
 
 window.addEventListener('DOMContentLoaded', async () => {
-  const resp = await fetch('/api/advogados');
-  const advs = await resp.json();
-  ['selectAdvogado', 'advogadoForm'].forEach(id => {
-    const sel = document.getElementById(id);
-    advs.forEach(a => {
-      const opt = document.createElement('option');
-      opt.value = a; opt.textContent = a;
-      sel.appendChild(opt);
-    });
-  });
+  const resp = await fetch('/api/usuarios');
+  todosUsuarios = await resp.json();
   document.getElementById('dataRecebimento').value = new Date().toISOString().split('T')[0];
 });
 
-function setAdvogado(val) {
-  advogadoAtual = val;
-  document.getElementById('advogadoForm').value = val;
+// ── Seleção de perfil ──
+function selecionarPerfil(perfil) {
+  if (!perfil) {
+    document.getElementById('selectNome').style.display = 'none';
+    return;
+  }
+  if (perfil === 'juridico') {
+    // Exige verificação por e-mail antes de liberar o acesso
+    document.getElementById('selectPerfil').value = '';
+    abrirModalVerificacao();
+  } else {
+    perfilAtual = 'unidade';
+    carregarSelectNomes('unidade');
+  }
+}
+
+function abrirModalVerificacao() {
+  document.getElementById('inputEmailVerificacao').value = '';
+  document.getElementById('erroEmail').style.display = 'none';
+  const modal = document.getElementById('modalVerificacao');
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('inputEmailVerificacao').focus(), 100);
+}
+
+function cancelarVerificacao() {
+  document.getElementById('modalVerificacao').style.display = 'none';
+  document.getElementById('selectPerfil').value = '';
+}
+
+function confirmarEmail() {
+  const email = document.getElementById('inputEmailVerificacao').value.trim().toLowerCase();
+  const membro = todosUsuarios.juridico.find(u => u.email.toLowerCase() === email);
+
+  if (!membro) {
+    document.getElementById('erroEmail').style.display = 'block';
+    document.getElementById('inputEmailVerificacao').focus();
+    return;
+  }
+
+  // E-mail válido — libera acesso jurídico
+  document.getElementById('modalVerificacao').style.display = 'none';
+  perfilAtual = 'juridico';
+  document.getElementById('selectPerfil').value = 'juridico';
+  carregarSelectNomes('juridico');
+
+  // Já seleciona automaticamente o nome correspondente
+  setTimeout(() => {
+    document.getElementById('selectNome').value = membro.nome;
+    setUsuario(membro.nome);
+  }, 100);
+}
+
+function carregarSelectNomes(perfil) {
+  const sel = document.getElementById('selectNome');
+  sel.innerHTML = '<option value="">Selecione seu nome</option>';
+
+  const lista = perfil === 'juridico'
+    ? todosUsuarios.juridico.map(u => u.nome)
+    : todosUsuarios.unidades;
+
+  lista.forEach(n => {
+    const opt = document.createElement('option');
+    opt.value = n; opt.textContent = n;
+    sel.appendChild(opt);
+  });
+  sel.style.display = 'block';
+}
+
+function setUsuario(nome) {
+  nomeAtual = nome;
+  if (!nome) return;
+
+  const sel = document.getElementById('advogadoForm');
+  if (sel) sel.value = nome;
+
+  const btn = document.getElementById('btnEnviar');
+  if (perfilAtual === 'juridico') {
+    btn.textContent = '🔍 Analisar com IA →';
+  } else {
+    btn.textContent = '📤 Enviar ao Jurídico →';
+  }
+
+  if (perfilAtual === 'juridico') {
+    document.getElementById('nav-juridico').style.display = 'flex';
+    document.getElementById('nav-unidade').style.display = 'none';
+    const selAdv = document.getElementById('advogadoForm');
+    selAdv.innerHTML = '<option value="">Selecione...</option>';
+    todosUsuarios.juridico.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.nome; opt.textContent = u.nome;
+      selAdv.appendChild(opt);
+    });
+    selAdv.value = nome;
+    mostrarTela('nova', document.querySelector('#nav-juridico .nav-btn'));
+  } else {
+    document.getElementById('nav-juridico').style.display = 'none';
+    document.getElementById('nav-unidade').style.display = 'flex';
+    const camp = document.getElementById('setorSolicitante');
+    if (camp) camp.value = nome;
+    mostrarTela('nova', document.querySelector('#nav-unidade .nav-btn'));
+  }
 }
 
 function mostrarTela(nome, btn) {
   document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+  // Desmarca todos os botões de ambas as navs
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('ativo'));
   document.getElementById('tela-' + nome).classList.add('ativa');
   if (btn) btn.classList.add('ativo');
   if (nome === 'dashboard') carregarDashboard();
   if (nome === 'historico') carregarHistorico();
+  if (nome === 'acompanhamento') carregarAcompanhamento();
 }
 
 // Upload
@@ -465,11 +727,55 @@ function removerArquivo() {
   document.getElementById('arquivoSelecionado').style.display = 'none';
 }
 
+// ── Subsídios — múltiplos arquivos ──
+function adicionarSubsidios(event) {
+  const novos = Array.from(event.target.files);
+  novos.forEach(f => {
+    // Evita duplicatas pelo nome
+    if (!subsidios.find(s => s.name === f.name)) subsidios.push(f);
+  });
+  event.target.value = ''; // reset para permitir adicionar o mesmo arquivo novamente
+  renderizarSubsidios();
+}
+
+function removerSubsidio(nome) {
+  subsidios = subsidios.filter(s => s.name !== nome);
+  renderizarSubsidios();
+}
+
+function renderizarSubsidios() {
+  const lista = document.getElementById('subsidiosLista');
+  const contador = document.getElementById('subsidiosContador');
+  const btnTexto = document.getElementById('subsidiosTextoBtn');
+
+  lista.innerHTML = subsidios.map(f => `
+    <div class="subsidio-item">
+      <span>${f.name.endsWith('.pdf') ? '📄' : '📝'}</span>
+      <span class="nome" title="${f.name}">${f.name}</span>
+      <span style="font-size:11px; color:#8a96a3; flex-shrink:0;">${(f.size/1024).toFixed(0)} KB</span>
+      <button class="remover" onclick="removerSubsidio('${f.name.replace(/'/g, "\\'")}')">✕</button>
+    </div>
+  `).join('');
+
+  if (subsidios.length === 0) {
+    contador.textContent = '';
+    btnTexto.textContent = 'Adicionar arquivos de subsídio (PDF ou Word)';
+  } else {
+    contador.textContent = `${subsidios.length} arquivo${subsidios.length > 1 ? 's' : ''} adicionado${subsidios.length > 1 ? 's' : ''}`;
+    btnTexto.textContent = '➕ Adicionar mais arquivos';
+  }
+}
+
 // ETAPA 1 → 2: IA analisa e extrai tudo
 async function executarAnalise() {
   const textoManual = document.getElementById('textoManual').value.trim();
   if (!arquivoSelecionado && !textoManual) {
     mostrarAlerta('erro', 'Faça upload do documento ou cole o texto da notificação.');
+    return;
+  }
+  if (subsidios.length === 0) {
+    mostrarAlerta('erro', 'É obrigatório enviar ao menos um arquivo de subsídio antes de prosseguir.');
+    document.getElementById('subsidiosInput').click();
     return;
   }
 
@@ -481,6 +787,10 @@ async function executarAnalise() {
     const formData = new FormData();
     if (arquivoSelecionado) formData.append('arquivo', arquivoSelecionado);
     else formData.append('textoManual', textoManual);
+
+    // Envia cada subsídio individualmente
+    subsidios.forEach((f, i) => formData.append(`subsidio_${i}`, f));
+    formData.append('totalSubsidios', String(subsidios.length));
 
     const resp = await fetch('/api/analisar', { method: 'POST', body: formData });
     const dados = await resp.json();
@@ -499,7 +809,6 @@ async function executarAnalise() {
     document.getElementById('ai-resumo').textContent = dados.resumoNotificacao || '—';
     document.getElementById('ai-exigencias').textContent = dados.exigencias || '—';
 
-    // Autocompleta data de recebimento se a IA identificou
     if (dados.dataNotificacao) {
       document.getElementById('dataRecebimento').value = dados.dataNotificacao;
     }
@@ -549,10 +858,21 @@ async function confirmarEGerar() {
     if (!resp.ok) throw new Error(dados.erro || 'Erro ao gerar');
 
     arquivoAtualNome = dados.nomeArquivo;
-    document.getElementById('conteudoMinuta').textContent = dados.textoMinuta;
     document.getElementById('loadingGeracao').classList.remove('visivel');
-    document.getElementById('etapa-3').classList.add('ativa');
-    atualizarPassos(3);
+
+    if (perfilAtual === 'unidade') {
+      // Unidade: mostra tela de sucesso simples e redireciona para acompanhamento
+      document.getElementById('etapa-3-unidade').classList.add('ativa');
+      atualizarPassos(3);
+    } else {
+      // Jurídico: abre editor de minuta
+      const editor = document.getElementById('editorMinuta');
+      editor.innerText = dados.textoMinuta;
+      textoOriginalIA = dados.textoMinuta;
+      atualizarContador();
+      document.getElementById('etapa-3').classList.add('ativa');
+      atualizarPassos(3);
+    }
 
   } catch (err) {
     document.getElementById('loadingGeracao').classList.remove('visivel');
@@ -561,23 +881,129 @@ async function confirmarEGerar() {
   }
 }
 
-function baixarDocumento() {
-  if (arquivoAtualNome) window.location.href = '/api/download/' + encodeURIComponent(arquivoAtualNome);
+// ── Funções do editor ──
+function fmt(cmd) { document.execCommand(cmd, false, null); document.getElementById('editorMinuta').focus(); }
+
+function desfazer() { document.execCommand('undo', false, null); }
+
+function restaurarOriginal() {
+  if (!confirm('Descartar todas as edições e voltar ao texto original da IA?')) return;
+  document.getElementById('editorMinuta').innerText = textoOriginalIA;
+  atualizarContador();
+}
+
+function atualizarContador() {
+  const texto = document.getElementById('editorMinuta').innerText || '';
+  const palavras = texto.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('editorInfo').textContent = `${palavras} palavras`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const editor = document.getElementById('editorMinuta');
+  if (editor) editor.addEventListener('input', atualizarContador);
+});
+
+// ── Download com conteúdo editado ──
+async function baixarDocumentoEditado() {
+  if (!arquivoAtualNome) return;
+
+  const editor = document.getElementById('editorMinuta');
+  const textoEditado = editor.innerText || editor.textContent || '';
+
+  if (!textoEditado.trim()) {
+    mostrarAlerta('erro', 'O editor está vazio. Restaure o original antes de baixar.');
+    return;
+  }
+
+  const btnDownload = document.querySelector('#etapa-3 .btn-primary');
+  btnDownload.disabled = true;
+  btnDownload.textContent = '⏳ Gerando Word...';
+
+  try {
+    const resp = await fetch('/api/gerar-word', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ textoEditado, nomeArquivo: arquivoAtualNome })
+    });
+    if (!resp.ok) throw new Error('Erro ao gerar');
+    const dados = await resp.json();
+    window.location.href = '/api/download/' + encodeURIComponent(dados.nomeArquivo);
+  } catch (err) {
+    mostrarAlerta('erro', 'Erro ao gerar Word: ' + err.message);
+  } finally {
+    btnDownload.disabled = false;
+    btnDownload.textContent = '⬇️ Baixar Word com Edições';
+  }
+}
+
+// ── Tela de acompanhamento (unidades) ──
+async function carregarAcompanhamento() {
+  if (!nomeAtual || perfilAtual !== 'unidade') return;
+  const resp = await fetch('/api/registros/unidade/' + encodeURIComponent(nomeAtual));
+  const registros = await resp.json();
+  const container = document.getElementById('tabelaAcompanhamento');
+
+  if (!registros.length) {
+    container.innerHTML = '<p style="padding:32px;text-align:center;color:#8a96a3;font-size:14px;">Nenhuma notificação enviada ainda pela sua unidade.</p>';
+    return;
+  }
+
+  const statusLabel = {
+    minuta_gerada: { label: 'Recebido pelo Jurídico', cor: '#c8d5e0', texto: '#4a5568' },
+    em_revisao:    { label: 'Em Revisão',             cor: '#fef3c7', texto: '#92400e' },
+    enviada:       { label: 'Resposta Enviada',        cor: '#dbeafe', texto: '#1e40af' },
+    concluida:     { label: 'Concluído',               cor: '#d1fae5', texto: '#065f46' }
+  };
+
+  container.innerHTML = `<table>
+    <thead><tr>
+      <th>Notificante</th>
+      <th>Tipo</th>
+      <th>Enviado em</th>
+      <th>Prazo</th>
+      <th>Status</th>
+    </tr></thead>
+    <tbody>${registros.map(r => {
+      const st = statusLabel[r.status] || statusLabel.minuta_gerada;
+      return `<tr>
+        <td><div style="font-weight:600;font-size:13px;">${r.nomeNotificante}</div><div style="font-size:11px;color:#8a96a3;">${r.cnpjNotificante||''}</div></td>
+        <td><span class="badge-tipo">${tiposLabel[r.tipoNotificacao]?.icone||''} ${tiposLabel[r.tipoNotificacao]?.label||r.tipoNotificacao}</span></td>
+        <td style="font-size:13px;">${formatarDataBR(r.dataRecebimento)}</td>
+        <td><span class="semaforo ${r.semaforo}">${diasRestantes(r.dataVencimento)}</span></td>
+        <td><span style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;background:${st.cor};color:${st.texto};">${st.label}</span></td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
+}
+
+function irParaAcompanhamento() {
+  const navBtn = document.querySelector('#nav-unidade .nav-btn:nth-child(2)');
+  mostrarTela('acompanhamento', navBtn);
 }
 
 function novaNotificacao() {
   analiseAtual = null; arquivoAtualNome = null; arquivoSelecionado = null;
+  subsidios = [];
+  renderizarSubsidios();
   document.querySelectorAll('.etapa').forEach(e => e.classList.remove('ativa'));
   document.getElementById('etapa-1').classList.add('ativa');
   document.getElementById('loadingAnalise').classList.remove('visivel');
   document.getElementById('loadingGeracao').classList.remove('visivel');
   document.getElementById('textoManual').value = '';
   document.getElementById('numeroFlow').value = '';
-  document.getElementById('setorSolicitante').value = '';
   document.getElementById('dataRecebimento').value = new Date().toISOString().split('T')[0];
+  // Restaura setor da unidade se for perfil unidade
+  if (perfilAtual === 'unidade') {
+    document.getElementById('setorSolicitante').value = nomeAtual;
+  } else {
+    document.getElementById('setorSolicitante').value = '';
+  }
   removerArquivo();
   atualizarPassos(1);
-  mostrarTela('nova', document.querySelectorAll('.nav-btn')[0]);
+  const navBtn = perfilAtual === 'unidade'
+    ? document.querySelector('#nav-unidade .nav-btn')
+    : document.querySelector('#nav-juridico .nav-btn');
+  mostrarTela('nova', navBtn);
 }
 
 // Dashboard
