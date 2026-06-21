@@ -416,6 +416,13 @@
             <label>Exigências</label>
             <p id="ai-exigencias" style="font-size:13px; line-height:1.6;">—</p>
           </div>
+          <div class="analise-item full" id="blocoSubmotivo" style="display:none;">
+            <label>⚠️ Causa Raiz do Pedido de Rescisão</label>
+            <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;">
+              <span id="ai-submotivo-badge" style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;white-space:nowrap;"></span>
+              <p id="ai-submotivo-detalhe" style="font-size:13px;line-height:1.6;color:#4a5568;margin:0;"></p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -475,20 +482,59 @@
     <div class="form-card etapa" id="etapa-3">
       <div class="form-titulo" style="color: #15803d;">✅ Minuta Gerada — Revise e Edite antes de Baixar</div>
 
-      <!-- Toolbar do editor -->
+      <!-- Toolbar completa do editor jurídico -->
       <div class="editor-toolbar">
-        <span class="toolbar-label">Formatação:</span>
-        <button class="toolbar-btn" onclick="fmt('bold')" title="Negrito"><b>N</b></button>
-        <button class="toolbar-btn" onclick="fmt('italic')" title="Itálico"><i>I</i></button>
-        <button class="toolbar-btn" onclick="fmt('underline')" title="Sublinhado"><u>S</u></button>
+        <!-- Formatação de texto -->
+        <span class="toolbar-label">Texto:</span>
+        <button class="toolbar-btn" onclick="fmt('bold')" title="Negrito (Ctrl+B)"><b>N</b></button>
+        <button class="toolbar-btn" onclick="fmt('italic')" title="Itálico (Ctrl+I)"><i>I</i></button>
+        <button class="toolbar-btn" onclick="fmt('underline')" title="Sublinhado (Ctrl+U)"><u>S</u></button>
+        <button class="toolbar-btn" onclick="fmt('strikeThrough')" title="Tachado"><s>T</s></button>
+
         <div class="toolbar-sep"></div>
+
+        <!-- Tamanho de fonte -->
+        <span class="toolbar-label">Fonte:</span>
+        <select onchange="aplicarTamanho(this.value)" title="Tamanho da fonte"
+          style="padding:3px 6px;border:1px solid #e0e6ed;border-radius:5px;font-size:12px;cursor:pointer;background:white;color:#2E3C50;">
+          <option value="">Tam.</option>
+          <option value="1">8pt</option>
+          <option value="2">10pt</option>
+          <option value="3">12pt</option>
+          <option value="4">14pt</option>
+          <option value="5">18pt</option>
+          <option value="6">24pt</option>
+        </select>
+
+        <div class="toolbar-sep"></div>
+
+        <!-- Alinhamento -->
         <span class="toolbar-label">Alinhamento:</span>
         <button class="toolbar-btn" onclick="fmt('justifyLeft')" title="Esquerda">⬅</button>
         <button class="toolbar-btn" onclick="fmt('justifyFull')" title="Justificado">☰</button>
         <button class="toolbar-btn" onclick="fmt('justifyCenter')" title="Centro">≡</button>
+        <button class="toolbar-btn" onclick="fmt('justifyRight')" title="Direita">➡</button>
+
         <div class="toolbar-sep"></div>
-        <button class="toolbar-btn" onclick="desfazer()" title="Desfazer última edição">↩ Desfazer</button>
-        <button class="toolbar-btn" onclick="restaurarOriginal()" title="Voltar ao texto original da IA" style="margin-left:auto;">🔄 Restaurar Original</button>
+
+        <!-- Listas -->
+        <span class="toolbar-label">Lista:</span>
+        <button class="toolbar-btn" onclick="fmt('insertUnorderedList')" title="Lista com marcadores">•</button>
+        <button class="toolbar-btn" onclick="fmt('insertOrderedList')" title="Lista numerada">1.</button>
+
+        <div class="toolbar-sep"></div>
+
+        <!-- Recuo -->
+        <button class="toolbar-btn" onclick="fmt('indent')" title="Aumentar recuo">→|</button>
+        <button class="toolbar-btn" onclick="fmt('outdent')" title="Diminuir recuo">|←</button>
+
+        <div class="toolbar-sep"></div>
+
+        <!-- Ações -->
+        <button class="toolbar-btn" onclick="desfazer()" title="Desfazer (Ctrl+Z)">↩</button>
+        <button class="toolbar-btn" onclick="refazer()" title="Refazer (Ctrl+Y)">↪</button>
+        <button class="toolbar-btn" onclick="limparFormatacao()" title="Limpar formatação">✕ fmt</button>
+        <button class="toolbar-btn" onclick="restaurarOriginal()" title="Restaurar texto original da IA" style="margin-left:auto;">🔄 Original</button>
       </div>
 
       <!-- Editor editável -->
@@ -524,6 +570,13 @@
         <div class="card-header"><h2>⚠️ Atenção Imediata</h2></div>
         <div style="padding: 16px;" id="alertasVencimento"></div>
       </div>
+    </div>
+    <!-- Card de causas raiz de rescisão -->
+    <div class="card" id="cardSubmotivos" style="margin-bottom:20px;display:none;">
+      <div class="card-header">
+        <h2>🔍 Causas Raiz de Rescisão — Inteligência para o Negócio</h2>
+      </div>
+      <div style="padding:20px;" id="submotivosConteudo"></div>
     </div>
     <div class="card">
       <div class="card-header">
@@ -813,6 +866,27 @@ async function executarAnalise() {
     document.getElementById('ai-resumo').textContent = dados.resumoNotificacao || '—';
     document.getElementById('ai-exigencias').textContent = dados.exigencias || '—';
 
+    // Submotivo de rescisão — só exibe quando for RESCISAO_CONTRATO
+    const blocoSub = document.getElementById('blocoSubmotivo');
+    if (dados.tipoNotificacao === 'RESCISAO_CONTRATO' && dados.submotivoRescisao) {
+      const submotivoLabels = {
+        ATRASO_IMPLANTACAO: 'Atraso na Implantação',
+        FALHA_SLA: 'Falha de SLA',
+        ESCOPO_NAO_ENTREGUE: 'Escopo Não Entregue',
+        INSATISFACAO_ATENDIMENTO: 'Insatisfação com Atendimento',
+        DIVERGENCIA_COMERCIAL: 'Divergência Comercial',
+        LGPD_DADOS: 'LGPD / Dados',
+        OUTRO: 'Outro'
+      };
+      document.getElementById('ai-submotivo-badge').textContent =
+        submotivoLabels[dados.submotivoRescisao] || dados.submotivoRescisao;
+      document.getElementById('ai-submotivo-detalhe').textContent =
+        dados.submotivoRescisaoDetalhe || '';
+      blocoSub.style.display = 'block';
+    } else {
+      blocoSub.style.display = 'none';
+    }
+
     if (dados.dataNotificacao) {
       document.getElementById('dataRecebimento').value = dados.dataNotificacao;
     }
@@ -928,8 +1002,10 @@ async function aprovarComoModelo() {
   }
 }
 function fmt(cmd) { document.execCommand(cmd, false, null); document.getElementById('editorMinuta').focus(); }
-
 function desfazer() { document.execCommand('undo', false, null); }
+function refazer() { document.execCommand('redo', false, null); }
+function aplicarTamanho(val) { if (val) { document.execCommand('fontSize', false, val); document.getElementById('editorMinuta').focus(); } }
+function limparFormatacao() { document.execCommand('removeFormat', false, null); document.getElementById('editorMinuta').focus(); }
 
 function restaurarOriginal() {
   if (!confirm('Descartar todas as edições e voltar ao texto original da IA?')) return;
@@ -1090,6 +1166,53 @@ async function carregarDashboard() {
       </div>`).join('');
 
   renderizarTabela(todosRegistros.slice(0,8), 'tabelaRecentes');
+
+  // Card de causas raiz de rescisão
+  const rescisoes = todosRegistros.filter(r => r.tipoNotificacao === 'RESCISAO_CONTRATO' && r.submotivoRescisao);
+  const cardSub = document.getElementById('cardSubmotivos');
+  if (rescisoes.length > 0) {
+    cardSub.style.display = 'block';
+    const submotivoLabels = {
+      ATRASO_IMPLANTACAO: { label: 'Atraso na Implantação', cor: '#fef3c7', texto: '#92400e' },
+      FALHA_SLA:          { label: 'Falha de SLA',          cor: '#fef2f2', texto: '#991b1b' },
+      ESCOPO_NAO_ENTREGUE:{ label: 'Escopo Não Entregue',   cor: '#fce7f3', texto: '#831843' },
+      INSATISFACAO_ATENDIMENTO: { label: 'Insatisfação c/ Atendimento', cor: '#ede9fe', texto: '#5b21b6' },
+      DIVERGENCIA_COMERCIAL:    { label: 'Divergência Comercial',       cor: '#dbeafe', texto: '#1e40af' },
+      LGPD_DADOS:         { label: 'LGPD / Dados',          cor: '#d1fae5', texto: '#065f46' },
+      OUTRO:              { label: 'Outro',                  cor: '#f0f2f5', texto: '#4a5568' }
+    };
+    // Conta por submotivo
+    const contSub = {};
+    rescisoes.forEach(r => { contSub[r.submotivoRescisao] = (contSub[r.submotivoRescisao] || 0) + 1; });
+    const sorted = Object.entries(contSub).sort((a,b) => b[1]-a[1]);
+
+    document.getElementById('submotivosConteudo').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px;">
+        ${sorted.map(([k,v]) => {
+          const s = submotivoLabels[k] || submotivoLabels.OUTRO;
+          return `<div style="padding:14px;border-radius:8px;background:${s.cor};border:1px solid rgba(0,0,0,0.06);">
+            <div style="font-size:22px;font-weight:700;color:${s.texto};">${v}</div>
+            <div style="font-size:12px;font-weight:600;color:${s.texto};margin-top:2px;">${s.label}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="border-top:1px solid #f0f2f5;padding-top:14px;">
+        <p style="font-size:12px;font-weight:600;color:#8a96a3;margin-bottom:8px;">DETALHAMENTO POR CASO</p>
+        ${rescisoes.map(r => {
+          const s = submotivoLabels[r.submotivoRescisao] || submotivoLabels.OUTRO;
+          return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f8f9fb;">
+            <span style="padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${s.cor};color:${s.texto};white-space:nowrap;flex-shrink:0;">${s.label}</span>
+            <div>
+              <span style="font-size:13px;font-weight:600;color:#2E3C50;">${r.nomeNotificante}</span>
+              ${r.submotivoRescisaoDetalhe ? `<span style="font-size:12px;color:#6b7a8d;"> — ${r.submotivoRescisaoDetalhe}</span>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+  } else {
+    cardSub.style.display = 'none';
+  }
 }
 
 async function carregarHistorico() {
