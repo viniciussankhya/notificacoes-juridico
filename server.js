@@ -132,42 +132,90 @@ async function analisarNotificacao(textoNotificacao, textosSubsidios = []) {
   const Anthropic = require('@anthropic-ai/sdk');
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const blocoSubsidios = textosSubsidios.length > 0
-    ? `\n\nSUBSÍDIOS ENVIADOS PELA UNIDADE (documentos de contexto):\n${textosSubsidios.join('\n\n')}`
+  // Limita tamanho dos inputs para não estourar contexto nem truncar o JSON de saída
+  const textoLimitado = textoNotificacao.slice(0, 6000);
+  const subsidiosLimitados = textosSubsidios.map(s => s.slice(0, 1500));
+
+  const blocoSubsidios = subsidiosLimitados.length > 0
+    ? `\n\nSUBSÍDIOS ENVIADOS PELA UNIDADE:\n${subsidiosLimitados.join('\n\n')}`
     : '';
 
   const prompt = `Você é um assistente jurídico especializado da Sankhya S.A., empresa de software ERP.
 Analise a notificação extrajudicial abaixo e extraia as informações em JSON.
-${blocoSubsidios ? 'Use também os subsídios enviados para enriquecer sua análise dos pontos críticos.' : ''}
+${blocoSubsidios ? 'Use os subsídios para enriquecer a análise dos pontos críticos.' : ''}
 
 NOTIFICAÇÃO:
-${textoNotificacao}
+${textoLimitado}
 ${blocoSubsidios}
 
-Retorne APENAS um objeto JSON válido, sem markdown, sem explicações, com esta estrutura exata:
+IMPORTANTE: Retorne APENAS um objeto JSON válido e completo. Todos os campos de texto devem ser CURTOS (máximo 3 frases cada). Não use aspas duplas dentro dos valores — use aspas simples se necessário.
+
 {
-  "nomeNotificante": "razão social completa de quem enviou a notificação",
-  "cnpjNotificante": "CNPJ do notificante ou vazio se não encontrado",
-  "enderecoNotificante": "endereço completo do notificante ou vazio",
-  "tipoNotificacao": "um dos seguintes: FALHA_SOFTWARE | RESCISAO_CONTRATO | COBRANCA_INDEVIDA | TECNOLOGIA_DESCONTINUADA | ESCOPO_PERSONALIZACAO | OUTRO",
-  "submotivoRescisao": "preencher APENAS quando tipoNotificacao for RESCISAO_CONTRATO. Identifique a causa raiz alegada pelo cliente para o pedido de rescisão. Use uma das categorias: ATRASO_IMPLANTACAO | FALHA_SLA | ESCOPO_NAO_ENTREGUE | INSATISFACAO_ATENDIMENTO | DIVERGENCIA_COMERCIAL | LGPD_DADOS | OUTRO. Se não for rescisão, retorne vazio.",
-  "submotivoRescisaoDetalhe": "quando for rescisão, descreva em uma frase o motivo específico alegado pelo cliente (ex: 'Atraso de 8 meses sem entrada em operação do módulo financeiro'). Se não for rescisão, retorne vazio.",
-  "temaResumido": "tema em até 10 palavras",
-  "resumoNotificacao": "resumo dos fatos e exigências em 3 a 5 frases",
-  "exigencias": "o que o notificante está pedindo/exigindo",
-  "pontosCriticos": "principais argumentos que precisam ser refutados ou tratados na resposta, levando em conta os subsídios fornecidos",
-  "dataNotificacao": "data da notificação no formato YYYY-MM-DD ou vazio se não encontrada",
-  "numeroContrato": "número do contrato ou proposta comercial se mencionado, ou vazio"
+  "nomeNotificante": "razão social completa",
+  "cnpjNotificante": "CNPJ ou vazio",
+  "enderecoNotificante": "endereço completo ou vazio",
+  "tipoNotificacao": "FALHA_SOFTWARE | RESCISAO_CONTRATO | COBRANCA_INDEVIDA | TECNOLOGIA_DESCONTINUADA | ESCOPO_PERSONALIZACAO | OUTRO",
+  "submotivoRescisao": "só para RESCISAO_CONTRATO: ATRASO_IMPLANTACAO | FALHA_SLA | ESCOPO_NAO_ENTREGUE | INSATISFACAO_ATENDIMENTO | DIVERGENCIA_COMERCIAL | LGPD_DADOS | OUTRO. Caso contrário vazio.",
+  "submotivoRescisaoDetalhe": "só para rescisão: uma frase com o motivo específico. Caso contrário vazio.",
+  "temaResumido": "tema em até 8 palavras",
+  "resumoNotificacao": "resumo em até 3 frases",
+  "exigencias": "o que o notificante pede em até 2 frases",
+  "pontosCriticos": "principais argumentos a refutar em até 3 frases",
+  "dataNotificacao": "YYYY-MM-DD ou vazio",
+  "numeroContrato": "número do contrato ou vazio"
 }`;
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 1500,
-    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 2000,
+    messages: [
+      { role: 'user', content: prompt },
+      { role: 'assistant', content: '{' } // prefill para forçar JSON válido
+    ],
   });
 
-  const texto = response.content[0].text.trim().replace(/```json|```/g, '').trim();
-  return JSON.parse(texto);
+  // Reconstrói o JSON com o prefill + resposta
+  let texto = '{' + response.content[0].text.trim();
+  texto = texto.replace(/```json|```/g, '').trim();
+
+  // Garante fechamento do JSON caso tenha sido truncado
+  if (!texto.endsWith('}')) {
+    // Tenta fechar o JSON truncado de forma segura
+    const ultimaVirgulaOuChave = texto.lastIndexOf(',');
+    const ultimaCitacaoFechada = texto.lastIndexOf('"');
+    if (ultimaCitacaoFechada > ultimaVirgulaOuChave) {
+      // Último campo está completo — só fecha o objeto
+      texto = texto + '}';
+    } else {
+      // Último campo está incompleto — remove e fecha
+      texto = texto.substring(0, ultimaVirgulaOuChave) + '}';
+    }
+  }
+
+  try {
+    return JSON.parse(texto);
+  } catch (e) {
+    // Fallback: extrai campos individualmente com regex
+    const extrair = (campo) => {
+      const m = texto.match(new RegExp(`"${campo}"\\s*:\\s*"([^"]*)"`)  );
+      return m ? m[1] : '';
+    };
+    return {
+      nomeNotificante: extrair('nomeNotificante') || 'Não identificado',
+      cnpjNotificante: extrair('cnpjNotificante'),
+      enderecoNotificante: extrair('enderecoNotificante'),
+      tipoNotificacao: extrair('tipoNotificacao') || 'OUTRO',
+      submotivoRescisao: extrair('submotivoRescisao'),
+      submotivoRescisaoDetalhe: extrair('submotivoRescisaoDetalhe'),
+      temaResumido: extrair('temaResumido') || 'Análise parcial — revisar manualmente',
+      resumoNotificacao: extrair('resumoNotificacao') || 'Não foi possível extrair automaticamente.',
+      exigencias: extrair('exigencias'),
+      pontosCriticos: extrair('pontosCriticos'),
+      dataNotificacao: extrair('dataNotificacao'),
+      numeroContrato: extrair('numeroContrato'),
+      textoCompleto: textoNotificacao
+    };
+  }
 }
 
 // ── IA: Gera minuta de resposta ──
