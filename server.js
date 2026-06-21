@@ -24,6 +24,30 @@ if (!fs.existsSync(REGISTROS_FILE)) {
   fs.writeFileSync(REGISTROS_FILE, JSON.stringify([]));
 }
 
+// Banco de exemplos aprovados pelo jurídico
+const EXEMPLOS_FILE = path.join(DADOS_DIR, 'exemplos_aprovados.json');
+if (!fs.existsSync(EXEMPLOS_FILE)) {
+  fs.writeFileSync(EXEMPLOS_FILE, JSON.stringify([]));
+}
+
+function lerExemplos() {
+  try { return JSON.parse(fs.readFileSync(EXEMPLOS_FILE, 'utf8')); }
+  catch { return []; }
+}
+
+function salvarExemplos(ex) {
+  fs.writeFileSync(EXEMPLOS_FILE, JSON.stringify(ex, null, 2));
+}
+
+// Busca os 2 exemplos aprovados mais recentes do mesmo tipo de notificação
+function buscarExemplosRelevantes(tipoNotificacao) {
+  const todos = lerExemplos();
+  return todos
+    .filter(e => e.tipoNotificacao === tipoNotificacao)
+    .sort((a, b) => new Date(b.aprovadoEm) - new Date(a.aprovadoEm))
+    .slice(0, 2);
+}
+
 // ── Helpers ──
 function lerRegistros() {
   try { return JSON.parse(fs.readFileSync(REGISTROS_FILE, 'utf8')); }
@@ -162,6 +186,12 @@ async function gerarMinutaResposta(dadosAnalise, dataResposta, numeroFlow, nomeA
     ? `\n\nSUBSÍDIOS DISPONÍVEIS (documentos enviados pela unidade como evidências):\n${dadosAnalise.subsidiosTexto.slice(0, 8000)}\n\nUse os subsídios acima para fundamentar a resposta com fatos concretos, datas, números de OS, e-mails, cronogramas e demais evidências. Cite-os de forma objetiva nos "Dos Fatos".`
     : '';
 
+  // Busca exemplos aprovados do mesmo tipo para guiar estilo e qualidade
+  const exemplos = buscarExemplosRelevantes(dadosAnalise.tipoNotificacao);
+  const blocoExemplos = exemplos.length > 0
+    ? `\n\nEXEMPLOS DE RESPOSTAS APROVADAS PELO JURÍDICO DA SANKHYA (mesmo tipo de notificação):\nEstes são textos reais revisados e aprovados pelos advogados. Use-os como referência de estilo, tom, estrutura e nível de detalhe — não os copie, mas produza algo coerente com esse padrão.\n\n${exemplos.map((e, i) => `--- Exemplo ${i + 1} (${e.temaResumido}) ---\n${e.textoAprovado}`).join('\n\n')}`
+    : '';
+
   const prompt = `Você é advogado sênior da Sankhya S.A. e precisa redigir uma resposta formal à notificação extrajudicial descrita abaixo.
 
 DADOS DA NOTIFICAÇÃO:
@@ -180,6 +210,7 @@ DADOS DA RESPOSTA:
 - Advogado: ${nomeAdvogado}
 - Setor solicitante: ${setorSolicitante}
 ${blocoSubsidios}
+${blocoExemplos}
 
 INSTRUÇÕES DE ESTRUTURA:
 1. Estrutura obrigatória:
@@ -487,6 +518,64 @@ const server = http.createServer(async (req, res) => {
       }
     });
     return;
+  }
+
+  // API: APROVAR EXEMPLO — salva o texto editado como referência futura
+  if (method === 'POST' && pathname === '/api/aprovar-exemplo') {
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => {
+      try {
+        const { textoAprovado, tipoNotificacao, temaResumido, nomeAdvogado, registroId } = JSON.parse(body);
+
+        if (!textoAprovado || !tipoNotificacao) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ erro: 'Dados insuficientes' }));
+        }
+
+        const exemplos = lerExemplos();
+
+        // Evita duplicata do mesmo registro
+        const jaExiste = exemplos.find(e => e.registroId === registroId);
+        if (jaExiste) {
+          // Atualiza o exemplo existente com o texto mais recente
+          jaExiste.textoAprovado = textoAprovado;
+          jaExiste.aprovadoEm = new Date().toISOString();
+          jaExiste.nomeAdvogado = nomeAdvogado;
+        } else {
+          exemplos.push({
+            id: `EX_${Date.now()}`,
+            registroId,
+            tipoNotificacao,
+            temaResumido: temaResumido || '',
+            textoAprovado,
+            nomeAdvogado,
+            aprovadoEm: new Date().toISOString()
+          });
+        }
+
+        salvarExemplos(exemplos);
+
+        // Marca o registro como tendo exemplo aprovado
+        const regs = lerRegistros();
+        const idx = regs.findIndex(r => r.id === registroId);
+        if (idx !== -1) { regs[idx].exemploAprovado = true; salvarRegistros(regs); }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, total: exemplos.filter(e => e.tipoNotificacao === tipoNotificacao).length }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ erro: err.message }));
+      }
+    });
+    return;
+  }
+
+  // API: listar exemplos aprovados (para gestão futura)
+  if (method === 'GET' && pathname === '/api/exemplos') {
+    const exemplos = lerExemplos();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify(exemplos));
   }
 
   // API: GERAR-WORD — recebe texto editado e gera novo docx
