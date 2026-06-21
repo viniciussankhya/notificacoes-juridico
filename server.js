@@ -181,9 +181,8 @@ DADOS DA RESPOSTA:
 - Setor solicitante: ${setorSolicitante}
 ${blocoSubsidios}
 
-INSTRUÇÕES:
-1. Português jurídico formal, claro e objetivo
-2. Estrutura obrigatória:
+INSTRUÇÕES DE ESTRUTURA:
+1. Estrutura obrigatória:
    - Cabeçalho: local/data e título "RESPOSTA À NOTIFICAÇÃO EXTRAJUDICIAL"
    - Identificação da Notificada: SANKHYA S.A., CNPJ 26.314.062/0001-61, Av. Marcos de Freitas Costa, nº 369, Bairro Daniel Fonseca, CEP 38.400-328, Uberlândia/MG
    - Identificação do Notificante com seus dados
@@ -192,10 +191,16 @@ INSTRUÇÕES:
    - "2. Dos Fatos" — resposta detalhada, fundamentada com evidências dos subsídios quando disponíveis
    - "Considerações Finais e Proposta de Solução" — encaminhamento construtivo
    - Fechamento: Uberlândia/MG, data e SANKHYA S.A.
-3. Tom: firme na defesa, respeitoso, sempre com proposta de solução
-4. Nunca admite falha sem contextualizar com fatos favoráveis
-5. Quando houver subsídios, use fatos concretos (datas, nomes, números de OS) para embasar os argumentos
-6. Sempre encerra com disposição para resolução amigável
+
+DIRETRIZES CRÍTICAS DE CONTEÚDO — leia com atenção:
+
+2. RESPOSTA DEFINITIVA, NÃO PROTELATÓRIA: A resposta deve ser conclusiva e encerrar a discussão com os fatos disponíveis. É absolutamente proibido redigir trechos que prometam levantar documentação futura, sistematizar informações posteriormente, ou apresentar elementos em prazo razoável. Frases como "procederemos ao levantamento da documentação", "apresentaremos as evidências oportunamente" ou qualquer variação que adie a defesa para um momento futuro são terminantemente vedadas. Se não há subsídios suficientes para um argumento, omita-o — não prometa provar depois.
+
+3. ESTILO PRÓXIMO AOS DOCUMENTOS REAIS DA SANKHYA: Escreva como um advogado humano da Sankhya escreveria, seguindo o estilo das respostas que já foram produzidas pelo departamento. Use linguagem direta, parágrafos corridos, sem enumerações com letras romanas (i), (ii), (iii) para estruturar argumentos dentro do texto. Sem travessões (—) no meio das frases. Sem listas com marcadores. Sem construções típicas de texto gerado por IA como "É de rigor", "cumpre salientar de plano", "ad argumentandum tantum". Use conectivos naturais como "Inicialmente", "Além disso", "Por fim", "Ocorre que", "Nesse sentido".
+
+4. TOM: firme na defesa dos interesses da Sankhya, respeitoso, sem agressividade. A Sankhya nunca admite falha sem antes apresentar o contexto e os fatos favoráveis. Sempre encerra com disposição para resolver de forma amigável.
+
+5. SUBSÍDIOS: quando disponíveis, use fatos concretos — datas, nomes, números de OS, cronogramas — diretamente no corpo da resposta, como provas já existentes, não como documentos a serem apresentados futuramente.
 
 Retorne APENAS o texto da resposta. Use **negrito** para títulos e nomes das partes.`;
 
