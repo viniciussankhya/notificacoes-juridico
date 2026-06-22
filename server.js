@@ -30,6 +30,34 @@ if (!fs.existsSync(EXEMPLOS_FILE)) {
   fs.writeFileSync(EXEMPLOS_FILE, JSON.stringify([]));
 }
 
+// ── Log de auditoria ──
+const LOG_FILE = path.join(DADOS_DIR, 'auditoria.json');
+if (!fs.existsSync(LOG_FILE)) {
+  fs.writeFileSync(LOG_FILE, JSON.stringify([]));
+}
+
+function lerLog() {
+  try { return JSON.parse(fs.readFileSync(LOG_FILE, 'utf8')); }
+  catch { return []; }
+}
+
+function registrarLog(tipo, dados) {
+  try {
+    const log = lerLog();
+    log.unshift({
+      id: `LOG_${Date.now()}`,
+      tipo,         // LOGIN | ANALISE | GERACAO | DOWNLOAD | APROVACAO | ERRO | LOGOUT
+      ...dados,
+      timestamp: new Date().toISOString()
+    });
+    // Mantém no máximo 2000 entradas
+    if (log.length > 2000) log.splice(2000);
+    fs.writeFileSync(LOG_FILE, JSON.stringify(log, null, 2));
+  } catch (err) {
+    console.error('Erro ao registrar log:', err.message);
+  }
+}
+
 function lerExemplos() {
   try { return JSON.parse(fs.readFileSync(EXEMPLOS_FILE, 'utf8')); }
   catch { return []; }
@@ -424,22 +452,24 @@ const server = http.createServer(async (req, res) => {
         // Verifica jurídico
         const membroJuridico = juridico.find(u => u.email === emailLower);
         if (membroJuridico) {
+          registrarLog('LOGIN', { email: emailLower, nome: membroJuridico.nome, perfil: 'juridico' });
           res.writeHead(200, { 'Content-Type': 'application/json' });
           return res.end(JSON.stringify({ ok: true, nome: membroJuridico.nome, perfil: 'juridico' }));
         }
 
         // Verifica se é e-mail @sankhya.com.br (unidade)
         if (emailLower.endsWith('@sankhya.com.br')) {
-          // Extrai nome amigável do e-mail (ex: joao.silva → João Silva)
           const parteLocal = emailLower.split('@')[0];
           const nomeFormatado = parteLocal.split('.').map(p =>
             p.charAt(0).toUpperCase() + p.slice(1)
           ).join(' ');
+          registrarLog('LOGIN', { email: emailLower, nome: nomeFormatado, perfil: 'unidade' });
           res.writeHead(200, { 'Content-Type': 'application/json' });
           return res.end(JSON.stringify({ ok: true, nome: nomeFormatado, perfil: 'unidade' }));
         }
 
         // E-mail não reconhecido
+        registrarLog('ERRO', { email: emailLower, mensagem: 'Tentativa de login com e-mail não autorizado' });
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: false, erro: 'E-mail não autorizado. Use seu e-mail corporativo @sankhya.com.br.' }));
 
@@ -543,6 +573,7 @@ const server = http.createServer(async (req, res) => {
     const nome = decodeURIComponent(pathname.split('/api/download/')[1]);
     const fp = path.join(DADOS_DIR, nome);
     if (!fs.existsSync(fp)) { res.writeHead(404); return res.end('Não encontrado'); }
+    registrarLog('DOWNLOAD', { arquivo: nome });
     res.writeHead(200, {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'Content-Disposition': `attachment; filename="${nome}"`
@@ -630,10 +661,17 @@ const server = http.createServer(async (req, res) => {
       analise.textoCompleto = textoNotificacao;
       analise.subsidiosTexto = textosSubsidios.join('\n\n');
 
+      registrarLog('ANALISE', {
+        notificante: analise.nomeNotificante,
+        tipo: analise.tipoNotificacao,
+        subsidios: textosSubsidios.length
+      });
+
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify(analise));
 
     } catch (err) {
+      registrarLog('ERRO', { rota: '/api/analisar', mensagem: err.message });
       console.error('Erro análise:', err);
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ erro: err.message }));
@@ -687,10 +725,20 @@ const server = http.createServer(async (req, res) => {
         regs.unshift(registro);
         salvarRegistros(regs);
 
+        registrarLog('GERACAO', {
+          notificante: analise.nomeNotificante,
+          tipo: analise.tipoNotificacao,
+          advogado: nomeAdvogado,
+          setor: setorSolicitante,
+          flow: numeroFlow,
+          arquivo: nomeArquivo
+        });
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true, id, nomeArquivo, textoMinuta }));
 
       } catch (err) {
+        registrarLog('ERRO', { rota: '/api/confirmar', mensagem: err.message });
         console.error('Erro confirmar:', err);
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ erro: err.message }));
@@ -735,6 +783,13 @@ const server = http.createServer(async (req, res) => {
 
         salvarExemplos(exemplos);
 
+        registrarLog('APROVACAO', {
+          tipoNotificacao,
+          temaResumido,
+          advogado: nomeAdvogado,
+          totalExemplos: exemplos.filter(e => e.tipoNotificacao === tipoNotificacao).length
+        });
+
         // Marca o registro como tendo exemplo aprovado
         const regs = lerRegistros();
         const idx = regs.findIndex(r => r.id === registroId);
@@ -757,6 +812,19 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify(exemplos));
   }
 
+  // API: AUDITORIA — restrita ao admin
+  if (method === 'GET' && pathname.startsWith('/api/auditoria')) {
+    const params = new URL(pathname + url.search, `http://localhost`);
+    const emailParam = params.searchParams.get('email') || '';
+    if (emailParam.toLowerCase() !== 'vinicius.sousa@sankhya.com.br') {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ erro: 'Acesso restrito.' }));
+    }
+    const log = lerLog();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify(log));
+  }
+
   // API: GERAR-WORD — recebe texto editado e gera novo docx
   if (method === 'POST' && pathname === '/api/gerar-word') {
     let body = '';
@@ -775,6 +843,77 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify({ ok: true, nomeArquivo: nomeNovo }));
       } catch (err) {
         console.error('Erro gerar-word:', err);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ erro: err.message }));
+      }
+    });
+    return;
+  }
+
+  // ── API: BACKUP — exporta todos os JSONs de dados (protegido por token) ──
+  if (method === 'GET' && pathname === '/api/backup') {
+    const token = url.searchParams.get('token') || '';
+    const tokenEsperado = process.env.BACKUP_TOKEN || 'sankhya-legal-backup-2025';
+    if (token !== tokenEsperado) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ erro: 'Token inválido' }));
+    }
+
+    try {
+      const backup = {
+        geradoEm: new Date().toISOString(),
+        versao: '1.0',
+        registros: lerRegistros(),
+        exemplos: lerExemplos(),
+        auditoria: lerLog()
+      };
+
+      const json = JSON.stringify(backup, null, 2);
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Content-Disposition': `attachment; filename="backup_${new Date().toISOString().split('T')[0]}.json"`
+      });
+      return res.end(json);
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ erro: err.message }));
+    }
+  }
+
+  // ── API: RESTAURAR — recebe backup JSON e restaura os dados ──
+  if (method === 'POST' && pathname === '/api/restaurar') {
+    const token = url.searchParams.get('token') || '';
+    const tokenEsperado = process.env.BACKUP_TOKEN || 'sankhya-legal-backup-2025';
+    if (token !== tokenEsperado) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ erro: 'Token inválido' }));
+    }
+
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => {
+      try {
+        const backup = JSON.parse(body);
+
+        if (backup.registros) salvarRegistros(backup.registros);
+        if (backup.exemplos) salvarExemplos(backup.exemplos);
+        if (backup.auditoria) fs.writeFileSync(LOG_FILE, JSON.stringify(backup.auditoria, null, 2));
+
+        registrarLog('RESTAURACAO', {
+          geradoEm: backup.geradoEm,
+          registros: (backup.registros || []).length,
+          exemplos: (backup.exemplos || []).length,
+          auditoria: (backup.auditoria || []).length
+        });
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          ok: true,
+          registros: (backup.registros || []).length,
+          exemplos: (backup.exemplos || []).length,
+          auditoria: (backup.auditoria || []).length
+        }));
+      } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ erro: err.message }));
       }
