@@ -398,6 +398,59 @@ const server = http.createServer(async (req, res) => {
     ]));
   }
 
+  // API: LOGIN — valida e-mail e retorna perfil
+  if (method === 'POST' && pathname === '/api/login') {
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => {
+      try {
+        const { email } = JSON.parse(body);
+        const emailLower = (email || '').toLowerCase().trim();
+
+        // Lista fechada do jurídico
+        const juridico = [
+          { nome: 'Ana Clara',      email: 'ana.oliveira@sankhya.com.br' },
+          { nome: 'Bernardo',       email: 'bernardo.barachisio@sankhya.com.br' },
+          { nome: 'Diogo',          email: 'diogo.oliveira@sankhya.com.br' },
+          { nome: 'Luis Marimon',   email: 'luis.marimon@sankhya.com.br' },
+          { nome: 'Luiza Delben',   email: 'luiza.delben@sankhya.com.br' },
+          { nome: 'Luiza Calabria', email: 'luiza.calabria@sankhya.com.br' },
+          { nome: 'Monique',        email: 'monique.silva@sankhya.com.br' },
+          { nome: 'Vinícius',       email: 'vinicius.sousa@sankhya.com.br' },
+          { nome: 'Giulia',         email: 'giulia.catharina@sankhya.com.br' },
+          { nome: 'João Pesciotto', email: 'joao.pesciotto@ploomes.com' },
+        ];
+
+        // Verifica jurídico
+        const membroJuridico = juridico.find(u => u.email === emailLower);
+        if (membroJuridico) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ ok: true, nome: membroJuridico.nome, perfil: 'juridico' }));
+        }
+
+        // Verifica se é e-mail @sankhya.com.br (unidade)
+        if (emailLower.endsWith('@sankhya.com.br')) {
+          // Extrai nome amigável do e-mail (ex: joao.silva → João Silva)
+          const parteLocal = emailLower.split('@')[0];
+          const nomeFormatado = parteLocal.split('.').map(p =>
+            p.charAt(0).toUpperCase() + p.slice(1)
+          ).join(' ');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ ok: true, nome: nomeFormatado, perfil: 'unidade' }));
+        }
+
+        // E-mail não reconhecido
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, erro: 'E-mail não autorizado. Use seu e-mail corporativo @sankhya.com.br.' }));
+
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, erro: 'Erro interno.' }));
+      }
+    });
+    return;
+  }
+
   // API: todos os usuários com perfil (juridico ou unidade)
   if (method === 'GET' && pathname === '/api/usuarios') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -416,10 +469,54 @@ const server = http.createServer(async (req, res) => {
         { nome: 'João Pesciotto', email: 'joao.pesciotto@ploomes.com',    cargo: 'Estagiário' },
       ],
       unidades: [
-        'BP Recife','BP São Paulo','BP Rio de Janeiro','BP Belo Horizonte',
-        'BP Curitiba','BP Porto Alegre','BP Fortaleza','BP Salvador',
-        'BP Brasília','BP Manaus','BP Goiânia','BP Campinas',
-        'Recepção / Triagem'
+        'AGILIDADE DTI',
+        'ARQUITETURA DTI',
+        'ASIS',
+        'CENTRAL DE PROJETOS',
+        'CENTRAL DELIVERY CENTER',
+        'COMERCIAL',
+        'COMPRAS',
+        'CONTÁBIL',
+        'DELIVERY CENTER CUSTOMIZAÇÕES',
+        'DELIVERY CENTER SOP',
+        'DEPARTAMENTO PESSOAL',
+        'DESENVOLVIMENTO DTI',
+        'EFICIÊNCIA OPERACIONAL',
+        'ENDOMARKETING',
+        'ESPRESSO',
+        'ESTRATÉGIA',
+        'FILIAL BELO HORIZONTE',
+        'FILIAL BRASIL CENTRAL',
+        'FILIAL ESPÍRITO SANTO',
+        'FILIAL PAULISTA',
+        'FILIAL PORTO ALEGRE',
+        'FILIAL SÃO JOSÉ DOS CAMPOS',
+        'FILIAL TRIÂNGULO MINEIRO',
+        'FINANCEIRO',
+        'INFRAESTRUTURA (FACILITIES)',
+        'INTELIGÊNCIA DE MERCADO',
+        'JURÍDICO',
+        'M&A',
+        'MANUTENCAO DTI',
+        'MARKETING',
+        'MEETIME',
+        'MINDSIGHT',
+        'NEPPO',
+        'PLANEJAMENTO FINANCEIRO',
+        'PLOOMES',
+        'P.M.I',
+        'PONTOTEL',
+        'PRESIDÊNCIA',
+        'PRODUTO DTI',
+        'PROSPECÇÃO',
+        'RECEITAS MATRIZ',
+        'RELACIONAMENTO COM CLIENTES (CS/CX)',
+        'SERVICE DESK SANKHYA',
+        'TALENT ACQUISITION',
+        'TI',
+        'TREINAMENTO E DESENVOLVIMENTO (DHO)',
+        'UNIVERSIDADE',
+        'VIXTING',
       ]
     }));
   }
